@@ -1,0 +1,80 @@
+---
+import type { Post } from '../types/index.js';
+
+interface Props { posts: Post[]; }
+const { posts } = Astro.props;
+
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
+}
+---
+
+<section id="blog" class="content">
+  <div class="inner">
+
+    <div class="sec-header">
+      <div class="sec-eyebrow">Actualidad</div>
+      <h2 class="sec-title">Noticias &amp; artículos</h2>
+      <p class="sec-sub">Lo último de la escena swing en España y Europa</p>
+    </div>
+
+    <div class="blog-grid">
+      {posts.map(p => (
+        <article class="blog-card">
+          <span class="blog-icon">{p.icon ?? '♪'}</span>
+          <div class="blog-cat">{p.category}</div>
+          <h3 class="blog-title">{p.title}</h3>
+          <p class="blog-exc">{p.excerpt}</p>
+          <div class="blog-foot">
+            <span>{fmtDate(p.date)}</span>
+            <a href={`/blog/${p.slug}`} class="read-more">Leer →</a>
+          </div>
+        </article>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .content   { padding: 86px 5vw; background: var(--dark); }
+  .inner     { max-width: 1100px; margin: 0 auto; }
+
+  .sec-header { margin-bottom: 2.6rem; }
+  .sec-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: .36em; font-size: 9.5px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: .5rem;
+    font-family: Arial, sans-serif;
+  }
+  .sec-eyebrow::after { content: ''; width: 26px; height: 1px; background: var(--gold); opacity: .4; }
+  .sec-title { font-family: Georgia, serif; font-size: clamp(1.85rem,3.6vw,2.8rem); color: var(--cream); line-height: 1.12; }
+  .sec-sub   { font-style: italic; font-size: .92rem; color: var(--muted); margin-top: .4rem; font-family: Arial, sans-serif; }
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
+    gap: 1px;
+    background: rgba(255,255,255,.05);
+  }
+  .blog-card {
+    background: var(--dark); padding: 26px;
+    transition: background .22s; position: relative; overflow: hidden;
+  }
+  .blog-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: var(--gold);
+    transform: scaleX(0); transition: transform .3s; transform-origin: left;
+  }
+  .blog-card:hover { background: var(--dark2); }
+  .blog-card:hover::after { transform: scaleX(1); }
+
+  .blog-icon  { font-size: 1.65rem; margin-bottom: 12px; display: block; }
+  .blog-cat   { font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: var(--teal-l); margin-bottom: 8px; font-family: Arial, sans-serif; }
+  .blog-title { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 9px; line-height: 1.4; }
+  .blog-exc   { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; font-family: Arial, sans-serif; }
+  .blog-foot  { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--muted); font-family: Arial, sans-serif; }
+  .read-more  { color: var(--gold); font-weight: 700; }
+  .read-more:hover { color: var(--gold-l); }
+</style>

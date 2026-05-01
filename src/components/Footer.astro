@@ -1,0 +1,57 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-name">Swing <em>Festivals</em></div>
+      <p class="footer-tag">El directorio de referencia para encontrar festivales de swing en todo el mundo.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Explorar</h4>
+      <a href="#eventos">Calendario de eventos</a>
+      <a href="#">Festivales destacados</a>
+    </div>
+    <div class="footer-col">
+      <h4>Comunidad</h4>
+      <a href="#blog">Noticias</a>
+      <a href="#">Newsletter</a>
+      <a href="/contacto">Contacto</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {year} <b>Swing Festivals</b> · El directorio mundial de swing</span>
+    <span>Hecho con ♪ para la comunidad swing</span>
+  </div>
+</footer>
+
+<style>
+  footer {
+    background: var(--dark);
+    border-top: 1px solid rgba(201,168,76,.12);
+    padding: 38px 5vw 26px;
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 1.2fr 1fr 1fr;
+    gap: 36px; margin-bottom: 28px;
+  }
+  .footer-name { font-family: Georgia, serif; font-size: 1.25rem; color: var(--cream); margin-bottom: 7px; }
+  .footer-name em { color: var(--gold); font-style: italic; }
+  .footer-tag  { font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.6; }
+  .footer-col h4 {
+    font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .3em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 13px;
+  }
+  .footer-col a {
+    display: block; font-family: Arial, sans-serif; font-size: 12px;
+    color: var(--muted); margin-bottom: 8px; transition: color .2s;
+  }
+  .footer-col a:hover { color: var(--cream); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,.06); padding-top: 18px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    font-family: Arial, sans-serif; font-size: 10px; color: var(--muted); letter-spacing: .07em;
+  }
+  .footer-bottom b { color: var(--gold); }
+</style>

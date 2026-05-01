@@ -1,0 +1,213 @@
+---
+// Hero con parallax multicapa.
+// Las imágenes viven en /public/images/ para servirse estáticamante.
+// Si en el futuro quieres servir los assets desde Directus,
+// pasa las URLs como props y úsalas en el style de cada .plx-img.
+
+const layers = [
+  { id: 'l-floor',   src: '/images/layer-floor.png',   z: 2,  imgStyle: 'width:112%;left:-6%;bottom:-6%;opacity:1;' },
+  { id: 'l-crowd',   src: '/images/layer-crowd.png',   z: 3,  imgStyle: 'width:100%;left:0;bottom:0;opacity:.8;' },
+  { id: 'l-city',    src: '/images/layer-city.png',    z: 4,  imgStyle: 'width:62%;right:-2%;bottom:0;opacity:.92;' },
+  { id: 'l-band',    src: '/images/layer-band.png',    z: 5,  imgStyle: 'width:42%;left:2%;bottom:0;' },
+  { id: 'l-drums',   src: '/images/layer-drums.png',   z: 6,  imgStyle: 'width:26%;left:0;bottom:0;' },
+  { id: 'l-trumpet', src: '/images/layer-trumpet.png', z: 7,  imgStyle: 'width:15%;right:16%;bottom:4%;opacity:.95;' },
+  { id: 'l-dancers', src: '/images/layer-dancers.png', z: 8,  imgStyle: 'width:48%;left:26%;bottom:0;' },
+];
+---
+
+<section id="hero">
+
+  <!-- Base gradient -->
+  <div class="plx" id="l-bg"
+    style="z-index:1;background:linear-gradient(155deg,#0C2018 0%,#152B1C 40%,#1D2008 78%,#060400 100%);">
+  </div>
+
+  <!-- Image layers -->
+  {layers.map(({ id, src, z, imgStyle }) => (
+    <div class="plx plx-img-wrap" id={id} style={`z-index:${z};`}>
+      <img src={src} alt="" style={`position:absolute;display:block;max-width:none;${imgStyle}`} loading="eager" />
+    </div>
+  ))}
+
+  <!-- Fade -->
+  <div class="hero-fade"></div>
+
+  <!-- Content -->
+  <div class="hero-content">
+    <div class="hero-eyebrow">El directorio mundial de swing</div>
+    <h1 class="hero-title">
+      Swing <em>Festivals</em>
+      <small>Descubre experiencias musicales inolvidables</small>
+    </h1>
+    <p class="hero-desc">
+      El directorio de referencia para encontrar festivales de swing,
+      Lindy Hop, Balboa y jazz en todo el mundo. Filtra por estilo, país y fecha.
+    </p>
+    <div class="hero-btns">
+      <a href="#eventos" class="btn-p">Ver calendario</a>
+      <a href="#blog"    class="btn-o">Últimas noticias</a>
+    </div>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="hero-stats">
+    {[['240+','Festivales'],['38','Países'],['9','Estilos'],['2025','Temporada']].map(([n,l]) => (
+      <div class="hero-stat">
+        <span class="stat-n">{n}</span>
+        <span class="stat-l">{l}</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="scroll-hint">
+    <span>Explorar</span>
+    <div class="scroll-arrow"></div>
+  </div>
+
+</section>
+
+<style>
+  #hero {
+    position: relative; width: 100%; height: 100vh;
+    min-height: 620px; overflow: hidden; background: #0B1A10;
+  }
+  .plx {
+    position: absolute; inset: -6%;
+    width: 112%; height: 112%;
+    will-change: transform;
+  }
+  .plx-img-wrap { pointer-events: none; }
+
+  .hero-fade {
+    position: absolute; inset: 0; z-index: 10; pointer-events: none;
+    background: linear-gradient(to bottom,
+      rgba(13,10,7,0) 0%, rgba(13,10,7,0) 40%,
+      rgba(13,10,7,.65) 70%, rgba(13,10,7,1) 100%);
+  }
+  .hero-fade::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0) 35%, rgba(0,0,0,.42) 100%);
+  }
+
+  .hero-content {
+    position: absolute; bottom: 9%; left: 50%;
+    transform: translateX(-50%); text-align: center;
+    z-index: 11; width: 100%; padding: 0 2rem; pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    letter-spacing: .44em; font-size: 10px; font-family: Arial, sans-serif;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 1.1rem;
+    opacity: 0; animation: fadeUp .8s .4s forwards;
+  }
+  .hero-eyebrow::before, .hero-eyebrow::after {
+    content: ''; width: 26px; height: 1px; background: var(--gold); opacity: .5;
+  }
+  .hero-title {
+    font-family: Georgia, serif;
+    font-size: clamp(3rem, 8.5vw, 6.8rem);
+    line-height: .92; color: var(--cream); margin-bottom: .35rem;
+    opacity: 0; animation: fadeUp .9s .55s forwards;
+    text-shadow: 0 2px 40px rgba(0,0,0,.9);
+  }
+  .hero-title em  { color: var(--gold); font-style: italic; }
+  .hero-title small {
+    display: block; font-size: clamp(.8rem, 1.7vw, 1.15rem);
+    letter-spacing: .34em; text-transform: uppercase;
+    color: var(--muted); font-family: Arial, sans-serif;
+    margin-top: .55rem; font-style: normal;
+  }
+  .hero-desc {
+    font-style: italic; font-size: clamp(.85rem, 1.7vw, 1.15rem);
+    color: var(--cream2); margin: 0 auto 2rem;
+    max-width: 480px; line-height: 1.65;
+    opacity: 0; animation: fadeUp .9s .75s forwards;
+  }
+  .hero-btns {
+    display: flex; gap: 14px; justify-content: center;
+    pointer-events: all;
+    opacity: 0; animation: fadeUp .9s .95s forwards;
+  }
+  .btn-p {
+    display: inline-block; background: var(--gold); color: var(--dark);
+    padding: 12px 36px; font-family: Arial, sans-serif; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase; font-size: 11px;
+    transition: background .2s, transform .15s;
+  }
+  .btn-p:hover { background: var(--gold-l); transform: translateY(-2px); }
+  .btn-o {
+    display: inline-block; background: transparent; color: var(--cream);
+    border: 1px solid rgba(240,230,200,.3); padding: 12px 28px;
+    font-family: Arial, sans-serif; letter-spacing: .17em;
+    text-transform: uppercase; font-size: 11px;
+    transition: border-color .2s;
+  }
+  .btn-o:hover { border-color: var(--cream); }
+
+  .hero-stats {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 11;
+    display: flex; justify-content: center;
+    border-top: 1px solid rgba(201,168,76,.12);
+    background: rgba(10,7,4,.5); backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  .hero-stat {
+    padding: 12px 34px;
+    border-right: 1px solid rgba(201,168,76,.1);
+    text-align: center;
+  }
+  .hero-stat:last-child { border-right: none; }
+  .stat-n { font-family: Georgia, serif; font-size: 1.5rem; color: var(--gold); display: block; line-height: 1; margin-bottom: 3px; }
+  .stat-l { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); }
+
+  .scroll-hint {
+    position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+    z-index: 11; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--muted); font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+    font-family: Arial, sans-serif; animation: pulse 2.2s infinite; pointer-events: none;
+  }
+  .scroll-arrow {
+    width: 13px; height: 13px;
+    border-right: 1px solid var(--gold); border-bottom: 1px solid var(--gold);
+    transform: rotate(45deg);
+  }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+  @keyframes pulse  { 0%,100% { opacity:.3; } 50% { opacity:.9; } }
+</style>
+
+<script>
+  // Parallax: depths por capa
+  const DEPTHS: Record<string, number> = {
+    'l-bg': 0, 'l-floor': .05, 'l-crowd': .12,
+    'l-city': .22, 'l-band': .35, 'l-drums': .42, 'l-trumpet': .55, 'l-dancers': .75,
+  };
+  const MX = 26, MY = 14;
+  let mx = 0, my = 0, sx = 0, sy = 0, pt = 0;
+
+  const hero = document.getElementById('hero')!;
+  hero.addEventListener('mousemove', e => {
+    const r = hero.getBoundingClientRect();
+    mx = (e.clientX - r.left) / r.width  * 2 - 1;
+    my = (e.clientY - r.top)  / r.height * 2 - 1;
+  });
+  hero.addEventListener('mouseleave', () => { mx = 0; my = 0; });
+
+  (function raf() {
+    pt += .007; sx += (mx - sx) * .055; sy += (my - sy) * .055;
+    for (const [id, d] of Object.entries(DEPTHS)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const tx = -sx * MX * d + Math.sin(pt * .65 + d * 2) * 2 * d;
+      const ty = -sy * MY * d + Math.cos(pt * .5  + d * 1.5) * 1.3 * d;
+      el.style.transform = `translate(${tx}px,${ty}px)`;
+    }
+    requestAnimationFrame(raf);
+  })();
+
+  // Parallax scroll sobre el texto del hero
+  window.addEventListener('scroll', () => {
+    const hc = document.querySelector<HTMLElement>('.hero-content');
+    if (hc) hc.style.transform = `translateX(-50%) translateY(${window.scrollY * .17}px)`;
+  });
+</script>

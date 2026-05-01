@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swing Festivals — Descubre los mejores festivales de swing</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#C9A84C;--gold-l:#E8C97A;--gold-d:#9A7830;
+  --teal:#2A7A6A;--teal-l:#3A9A86;--teal-d:#0D2B24;
+  --dark:#0D0A07;--dark2:#111009;--dark3:#1A1510;
+  --cream:#F0E6C8;--cream2:#D4C49A;--muted:#8A7A5A;
+  --nav-h:68px;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--cream);font-family:'Georgia',serif;overflow-x:hidden;}
+
+/* ══════════════════════════
+   NAVIGATION
+══════════════════════════ */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5vw;
+  transition:background .4s, box-shadow .4s;
+}
+#nav.scrolled{
+  background:rgba(10,7,4,.92);
+  backdrop-filter:blur(12px);
+  box-shadow:0 1px 0 rgba(201,168,76,.15);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;
+}
+.nav-logo-icon{
+  width:36px;height:36px;border:1.5px solid var(--gold);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--gold);
+}
+.nav-logo-text{
+  font-family:'Georgia',serif;font-size:1.15rem;color:var(--cream);
+  letter-spacing:.05em;line-height:1;
+}
+.nav-logo-text span{color:var(--gold);font-style:italic;}
+.nav-logo-sub{
+  font-family:'Arial',sans-serif;font-size:9px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--muted);display:block;margin-top:2px;
+}
+.nav-links{
+  display:flex;align-items:center;gap:32px;
+  font-family:'Arial',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+}
+.nav-links a{
+  color:var(--muted);text-decoration:none;transition:color .2s;position:relative;
+  padding-bottom:3px;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:0;left:0;width:0;height:1px;
+  background:var(--gold);transition:width .25s;
+}
+.nav-links a:hover{color:var(--cream);}
+.nav-links a:hover::after{width:100%;}
+.nav-cta{
+  background:transparent;border:1px solid var(--gold);color:var(--gold) !important;
+  padding:7px 18px !important;transition:background .2s, color .2s !important;
+}
+.nav-cta:hover{background:var(--gold) !important;color:var(--dark) !important;}
+.nav-cta::after{display:none !important;}
+.nav-burger{
+  display:none;flex-direction:column;gap:5px;cursor:pointer;
+  background:none;border:none;padding:4px;
+}
+.nav-burger span{display:block;width:22px;height:1.5px;background:var(--cream);transition:.3s;}
+
+/* ══════════════════════════
+   HERO
+══════════════════════════ */
+#hero{
+  position:relative;width:100%;height:100vh;min-height:620px;
+  overflow:hidden;background:#0B1A10;
+}
+.plx{
+  position:absolute;
+  inset:-6%;width:112%;height:112%;
+  will-change:transform;
+  background-repeat:no-repeat;
+}
+
+/* Layer stacking */
+#l-bg    {z-index:1;background:linear-gradient(155deg,#0C2018 0%,#152B1C 40%,#1D2008 78%,#060400 100%);}
+#l-paper {z-index:2;background-size:cover;background-position:center;opacity:.12;}
+#l-floor {z-index:3;background-position:center bottom;background-size:100% auto;}
+#l-crowd {z-index:4;background-position:center bottom;background-size:cover;opacity:.82;}
+#l-city  {z-index:5;background-position:60% 88%;background-size:64%;opacity:.92;}
+#l-band  {z-index:6;background-position:20% bottom;background-size:44%;}
+#l-drums {z-index:7;background-position:7% bottom;background-size:27%;}
+#l-trumpet{z-index:8;background-position:80% 91%;background-size:16%;}
+#l-dancers{z-index:9;background-position:47% bottom;background-size:50%;}
+
+.hero-fade{
+  position:absolute;inset:0;z-index:10;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(13,10,7,0) 0%,rgba(13,10,7,0) 42%,rgba(13,10,7,.6) 72%,rgba(13,10,7,1) 100%);
+}
+.hero-fade::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 38%,rgba(0,0,0,0) 38%,rgba(0,0,0,.4) 100%);
+}
+
+.hero-content{
+  position:absolute;bottom:9%;left:50%;transform:translateX(-50%);
+  text-align:center;z-index:11;width:100%;padding:0 2rem;pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:12px;
+  letter-spacing:.45em;font-size:10px;font-family:'Arial',sans-serif;
+  color:var(--gold);text-transform:uppercase;margin-bottom:1.2rem;
+  opacity:0;animation:fadeUp .8s .4s forwards;
+}
+.hero-eyebrow::before,.hero-eyebrow::after{content:'';width:30px;height:1px;background:var(--gold);opacity:.5;}
+.hero-title{
+  font-family:'Georgia',serif;font-size:clamp(3.2rem,8.5vw,7rem);
+  line-height:.92;color:var(--cream);margin-bottom:.4rem;
+  opacity:0;animation:fadeUp .9s .55s forwards;
+  text-shadow:0 2px 40px rgba(0,0,0,.9);
+}
+.hero-title em{color:var(--gold);font-style:italic;}
+.hero-title small{
+  display:block;font-size:clamp(.9rem,2vw,1.3rem);
+  letter-spacing:.35em;text-transform:uppercase;color:var(--muted);
+  font-family:'Arial',sans-serif;margin-top:.6rem;font-style:normal;
+}
+.hero-desc{
+  font-style:italic;font-size:clamp(.9rem,1.8vw,1.2rem);color:var(--cream2);
+  margin-bottom:2.2rem;opacity:0;animation:fadeUp .9s .75s forwards;
+  max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6;
+}
+.hero-btns{opacity:0;animation:fadeUp .9s .95s forwards;display:flex;gap:14px;justify-content:center;pointer-events:all;}
+.btn-primary{
+  display:inline-block;background:var(--gold);color:var(--dark);
+  padding:13px 38px;font-family:'Arial',sans-serif;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;font-size:11px;
+  text-decoration:none;transition:background .2s,transform .15s;
+}
+.btn-primary:hover{background:var(--gold-l);transform:translateY(-2px);}
+.btn-outline{
+  display:inline-block;background:transparent;color:var(--cream);
+  border:1px solid rgba(240,230,200,.35);
+  padding:13px 32px;font-family:'Arial',sans-serif;font-weight:400;
+  letter-spacing:.18em;text-transform:uppercase;font-size:11px;
+  text-decoration:none;transition:border-color .2s,color .2s;
+}
+.btn-outline:hover{border-color:var(--cream);color:var(--cream);}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0);}from{opacity:0;transform:translateY(16px);}}
+
+/* Hero stats bar */
+.hero-stats{
+  position:absolute;bottom:0;left:0;right:0;z-index:11;
+  display:flex;justify-content:center;gap:0;
+  border-top:1px solid rgba(201,168,76,.12);
+  background:rgba(10,7,4,.55);backdrop-filter:blur(8px);
+  pointer-events:none;
+}
+.hero-stat{
+  padding:14px 40px;border-right:1px solid rgba(201,168,76,.1);
+  text-align:center;
+}
+.hero-stat:last-child{border-right:none;}
+.hero-stat-n{
+  font-family:'Georgia',serif;font-size:1.6rem;color:var(--gold);
+  display:block;line-height:1;margin-bottom:3px;
+}
+.hero-stat-l{
+  font-family:'Arial',sans-serif;font-size:9px;letter-spacing:.25em;
+  text-transform:uppercase;color:var(--muted);
+}
+
+.scroll-hint{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  z-index:12;display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:var(--muted);font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+  font-family:'Arial',sans-serif;animation:pulse 2.2s infinite;pointer-events:none;
+}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
+.scroll-arrow{width:14px;height:14px;border-right:1px solid var(--gold);border-bottom:1px solid var(--gold);transform:rotate(45deg);}
+
+/* ══════════════════════════
+   SECTION DIVIDER
+══════════════════════════ */
+.section-divider{height:90px;position:relative;overflow:hidden;}
+.divider-wave{width:100%;height:100%;position:absolute;top:0;left:0;}
+
+/* ══════════════════════════
+   SECTION COMMON
+══════════════════════════ */
+section.content{padding:88px 5vw;}
+.section-header{margin-bottom:3rem;}
+.section-eyebrow{letter-spacing:.38em;font-size:9.5px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.55rem;font-family:'Arial',sans-serif;display:flex;align-items:center;gap:10px;}
+.section-eyebrow::after{content:'';flex:0 0 28px;height:1px;background:var(--gold);opacity:.4;}
+.section-title{font-family:'Georgia',serif;font-size:clamp(1.9rem,3.8vw,2.9rem);color:var(--cream);line-height:1.12;}
+.section-sub{font-style:italic;font-size:.95rem;color:var(--muted);margin-top:.5rem;font-family:'Arial',sans-serif;}
+
+/* ══════════════════════════
+   EVENTOS SECTION
+══════════════════════════ */
+#eventos{background:var(--dark2);}
+
+/* Filter bar */
+.filter-bar{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;
+  margin-bottom:2.8rem;padding:22px 24px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+}
+.filter-group{display:flex;flex-direction:column;gap:5px;min-width:140px;flex:1;}
+.filter-label{
+  font-family:'Arial',sans-serif;font-size:9px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--muted);
+}
+.filter-select{
+  background:#1A1510;border:1px solid rgba(255,255,255,.1);
+  color:var(--cream2);padding:8px 12px;font-family:'Arial',sans-serif;
+  font-size:12px;cursor:pointer;outline:none;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238A7A5A'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+  padding-right:28px;transition:border-color .2s;
+}
+.filter-select:focus{border-color:var(--gold);}
+.filter-search{
+  background:#1A1510;border:1px solid rgba(255,255,255,.1);
+  color:var(--cream2);padding:8px 12px;font-family:'Arial',sans-serif;
+  font-size:12px;outline:none;width:100%;transition:border-color .2s;
+}
+.filter-search::placeholder{color:var(--muted);}
+.filter-search:focus{border-color:var(--gold);}
+.filter-actions{display:flex;gap:8px;align-self:flex-end;}
+.filter-apply{
+  background:var(--gold);color:var(--dark);border:none;
+  padding:9px 20px;font-family:'Arial',sans-serif;font-size:10px;
+  letter-spacing:.18em;text-transform:uppercase;cursor:pointer;
+  font-weight:700;transition:background .2s;
+}
+.filter-apply:hover{background:var(--gold-l);}
+.filter-clear{
+  background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.1);
+  padding:9px 16px;font-family:'Arial',sans-serif;font-size:10px;
+  letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s;
+}
+.filter-clear:hover{border-color:var(--muted);color:var(--cream);}
+
+/* Events list */
+.events-wrapper{max-width:980px;}
+
+.month-block{margin-bottom:2.4rem;}
+.month-title{
+  font-family:'Georgia',serif;font-size:1.4rem;color:var(--cream);
+  padding-bottom:10px;border-bottom:1px solid rgba(201,168,76,.2);
+  margin-bottom:0;display:flex;align-items:center;gap:14px;
+}
+.month-title span{font-size:10px;font-family:'Arial',sans-serif;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);}
+.month-count{
+  margin-left:auto;font-family:'Arial',sans-serif;font-size:10px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--teal-l);
+}
+
+.event-row{
+  display:grid;
+  grid-template-columns:74px 1fr auto;
+  align-items:center;gap:18px;
+  padding:15px 12px;
+  border-bottom:1px solid rgba(255,255,255,.045);
+  cursor:pointer;
+  transition:background .18s, padding-left .18s;
+  position:relative;
+}
+.event-row::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:var(--gold);transform:scaleY(0);transition:transform .22s;transform-origin:bottom;
+}
+.event-row:hover{background:rgba(201,168,76,.04);padding-left:20px;}
+.event-row:hover::before{transform:scaleY(1);}
+.event-row:last-child{border-bottom:none;}
+
+.event-date{text-align:center;flex-shrink:0;}
+.event-day{font-family:'Georgia',serif;font-size:2rem;color:var(--gold);line-height:1;display:block;}
+.event-month-s{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-family:'Arial',sans-serif;}
+
+.event-main{}
+.event-name{font-family:'Georgia',serif;font-size:1rem;color:var(--cream);margin-bottom:5px;line-height:1.3;}
+.event-meta{
+  display:flex;flex-wrap:wrap;gap:10px;font-size:11px;
+  color:var(--muted);font-family:'Arial',sans-serif;
+}
+.event-meta-item{display:flex;align-items:center;gap:5px;}
+.event-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+
+.event-aside{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.event-tag{
+  font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  padding:3px 10px;border:1px solid;font-family:'Arial',sans-serif;white-space:nowrap;
+}
+.event-continent{font-size:9px;font-family:'Arial',sans-serif;color:var(--muted);letter-spacing:.1em;}
+
+/* Tag colors */
+.tag-festival   {color:#9A9A18;border-color:#9A9A18;}
+.tag-social     {color:var(--teal-l);border-color:var(--teal-l);}
+.tag-workshop   {color:#9A2090;border-color:#9A2090;}
+.tag-competicion{color:#9A2020;border-color:#9A2020;}
+.tag-exchange   {color:#209A7A;border-color:#209A7A;}
+
+.no-results{
+  padding:3.5rem 0;text-align:center;color:var(--muted);
+  font-style:italic;font-size:.95rem;
+}
+
+/* Results count */
+.results-info{
+  font-family:'Arial',sans-serif;font-size:11px;color:var(--muted);
+  margin-bottom:1.6rem;letter-spacing:.1em;
+}
+.results-info b{color:var(--gold);}
+
+/* ══════════════════════════
+   BLOG
+══════════════════════════ */
+#blog{background:var(--dark);}
+.blog-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:1px;background:rgba(255,255,255,.05);
+}
+.blog-card{
+  background:var(--dark);padding:28px 26px;
+  transition:background .22s;position:relative;overflow:hidden;
+}
+.blog-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--gold);transform:scaleX(0);transition:transform .3s;transform-origin:left;
+}
+.blog-card:hover{background:var(--dark2);}
+.blog-card:hover::after{transform:scaleX(1);}
+.blog-icon{font-size:1.7rem;margin-bottom:12px;display:block;}
+.blog-cat{font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--teal-l);margin-bottom:8px;font-family:'Arial',sans-serif;}
+.blog-title{font-family:'Georgia',serif;font-size:1.02rem;color:var(--cream);margin-bottom:10px;line-height:1.4;}
+.blog-excerpt{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:16px;font-family:'Arial',sans-serif;}
+.blog-foot{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);font-family:'Arial',sans-serif;}
+.read-more{color:var(--gold);font-weight:700;letter-spacing:.1em;text-decoration:none;transition:color .2s;}
+.read-more:hover{color:var(--gold-l);}
+
+/* ══════════════════════════
+   FOOTER
+══════════════════════════ */
+footer{
+  background:var(--dark);border-top:1px solid rgba(201,168,76,.12);
+  padding:40px 5vw 28px;
+}
+.footer-inner{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px;margin-bottom:32px;
+}
+.footer-brand{}
+.footer-logo{font-family:'Georgia',serif;font-size:1.3rem;color:var(--cream);margin-bottom:8px;}
+.footer-logo em{color:var(--gold);font-style:italic;}
+.footer-tagline{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;}
+.footer-col h4{font-family:'Arial',sans-serif;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+.footer-col a{display:block;font-family:'Arial',sans-serif;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:8px;letter-spacing:.05em;transition:color .2s;}
+.footer-col a:hover{color:var(--cream);}
+.footer-bottom{
+  border-top:1px solid rgba(255,255,255,.06);padding-top:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'Arial',sans-serif;font-size:10px;color:var(--muted);letter-spacing:.08em;
+  flex-wrap:wrap;gap:8px;
+}
+.footer-bottom b{color:var(--gold);}
+
+/* ══════════════════════════
+   REVEAL ANIMATIONS
+══════════════════════════ */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .75s cubic-bezier(.4,0,.2,1),transform .75s cubic-bezier(.4,0,.2,1);}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ══════════════════════════
+   RESPONSIVE
+══════════════════════════ */
+@media(max-width:768px){
+  .nav-links{display:none;}
+  .nav-burger{display:flex;}
+  .filter-bar{flex-direction:column;}
+  .event-row{grid-template-columns:60px 1fr;}
+  .event-aside{display:none;}
+  .footer-inner{grid-template-columns:1fr;}
+  .hero-stats{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════
+     NAVIGATION
+══════════════════════════ -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">♪</div>
+    <div>
+      <div class="nav-logo-text"><span>Swing</span> Festivals</div>
+      <span class="nav-logo-sub">Descubre los mejores festivales</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#eventos">Eventos</a>
+    <a href="#blog">Noticias</a>
+    <a href="#">Estilos</a>
+    <a href="#">Sobre nosotros</a>
+    <a href="#eventos" class="nav-cta">Añadir festival</a>
+  </div>
+  <button class="nav-burger" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════
+     HERO
+══════════════════════════ -->
+<section id="hero">
+
+  <div class="plx" id="l-bg"></div>
+  <div class="plx" id="l-paper"></div>
+  <div class="plx" id="l-floor"></div>
+  <div class="plx" id="l-crowd"></div>
+  <div class="plx" id="l-city"></div>
+  <div class="plx" id="l-band"></div>
+  <div class="plx" id="l-drums"></div>
+  <div class="plx" id="l-trumpet"></div>
+  <div class="plx" id="l-dancers"></div>
+
+  <div class="hero-fade"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">El directorio mundial de swing</div>
+    <h1 class="hero-title">
+      Swing <em>Festivals</em>
+      <small>Descubre experiencias musicales inolvidables</small>
+    </h1>
+    <p class="hero-desc">El directorio de referencia para encontrar festivales de swing, Lindy Hop, Balboa y jazz en todo el mundo. Filtra por estilo, país y fecha.</p>
+    <div class="hero-btns">
+      <a href="#eventos" class="btn-primary">Ver calendario</a>
+      <a href="#blog" class="btn-outline">Últimas noticias</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat"><span class="hero-stat-n">240+</span><span class="hero-stat-l">Festivales</span></div>
+    <div class="hero-stat"><span class="hero-stat-n">38</span><span class="hero-stat-l">Países</span></div>
+    <div class="hero-stat"><span class="hero-stat-n">9</span><span class="hero-stat-l">Estilos</span></div>
+    <div class="hero-stat"><span class="hero-stat-n">2025</span><span class="hero-stat-l">Temporada</span></div>
+  </div>
+
+  <div class="scroll-hint"><span>Explorar</span><div class="scroll-arrow"></div></div>
+</section>
+
+<!-- DIVIDER -->
+<div class="section-divider" style="background:linear-gradient(var(--dark),var(--dark2));">
+  <svg class="divider-wave" viewBox="0 0 1440 90" preserveAspectRatio="none">
+    <path d="M0,45 C360,90 720,0 1080,45 C1260,68 1380,36 1440,45 L1440,90 L0,90 Z" fill="#111009" opacity=".65"/>
+    <path d="M0,62 C200,26 500,82 800,54 C1050,32 1300,72 1440,58 L1440,90 L0,90 Z" fill="#111009"/>
+  </svg>
+</div>
+
+<!-- ══════════════════════════
+     EVENTOS
+══════════════════════════ -->
+<section id="eventos" class="content">
+  <div style="max-width:1020px;margin:0 auto;">
+
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Próximas citas</div>
+      <h2 class="section-title">Calendario de eventos</h2>
+      <p class="section-sub">Todos los festivales y eventos swing del mundo, agrupados por mes</p>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar reveal">
+      <div class="filter-group" style="flex:2;min-width:180px;">
+        <span class="filter-label">Buscar</span>
+        <input class="filter-search" id="f-search" type="text" placeholder="Nombre del evento o ciudad…"/>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Estilo</span>
+        <select class="filter-select" id="f-style">
+          <option value="">Todos los estilos</option>
+          <option>Lindy Hop</option>
+          <option>Balboa</option>
+          <option>Blues</option>
+          <option>Charleston</option>
+          <option>Solo Jazz</option>
+          <option>Boogie Woogie</option>
+          <option>Shag</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Continente</span>
+        <select class="filter-select" id="f-continent">
+          <option value="">Todos</option>
+          <option>Europa</option>
+          <option>América del Norte</option>
+          <option>América del Sur</option>
+          <option>Asia</option>
+          <option>Oceanía</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">País</span>
+        <select class="filter-select" id="f-country">
+          <option value="">Todos los países</option>
+          <option>España</option>
+          <option>Francia</option>
+          <option>Alemania</option>
+          <option>Italia</option>
+          <option>Sweden</option>
+          <option>United States</option>
+          <option>United Kingdom</option>
+          <option>Poland</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Tipo</span>
+        <select class="filter-select" id="f-type">
+          <option value="">Todos</option>
+          <option value="festival">Festival</option>
+          <option value="social">Social</option>
+          <option value="workshop">Workshop</option>
+          <option value="competicion">Competición</option>
+          <option value="exchange">Exchange</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="filter-apply" onclick="applyFilters()">Filtrar</button>
+        <button class="filter-clear" onclick="clearFilters()">✕ Limpiar</button>
+      </div>
+    </div>
+
+    <div class="results-info" id="results-info"></div>
+    <div class="events-wrapper reveal" id="events-output"></div>
+
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="section-divider" style="background:linear-gradient(var(--dark2),var(--dark));">
+  <svg class="divider-wave" viewBox="0 0 1440 90" preserveAspectRatio="none">
+    <path d="M0,38 C300,90 600,8 900,50 C1100,76 1300,22 1440,42 L1440,0 L0,0 Z" fill="#111009"/>
+    <path d="M0,18 C400,70 700,4 1000,42 C1150,62 1350,12 1440,28 L1440,0 L0,0 Z" fill="#111009" opacity=".5"/>
+  </svg>
+</div>
+
+<!-- ══════════════════════════
+     BLOG
+══════════════════════════ -->
+<section id="blog" class="content">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Actualidad</div>
+      <h2 class="section-title">Noticias &amp; artículos</h2>
+      <p class="section-sub">Lo último de la escena swing en España y Europa</p>
+    </div>
+    <div class="blog-grid" id="blog-grid"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════
+     FOOTER
+══════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">Swing <em>Festivals</em></div>
+      <p class="footer-tagline">El directorio de referencia para encontrar festivales de swing en todo el mundo.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Explorar</h4>
+      <a href="#eventos">Calendario de eventos</a>
+      <a href="#">Festivales destacados</a>
+      <a href="#">Estilos de baile</a>
+      <a href="#">Escuelas y academias</a>
+    </div>
+    <div class="footer-col">
+      <h4>Comunidad</h4>
+      <a href="#blog">Noticias</a>
+      <a href="#">Añadir festival</a>
+      <a href="#">Newsletter</a>
+      <a href="#">Contacto</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 <b>Swing Festivals</b> · El directorio mundial de swing</span>
+    <span>Hecho con ♪ para la comunidad swing</span>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════
+   EVENTS DATA
+══════════════════════════ */
+const events = [
+  // Mayo
+  {day:3,  month:"Mayo",  year:2025, name:"Madrid Swing Festival",         city:"Madrid",     country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  {day:8,  month:"Mayo",  year:2025, name:"Sitges Balboa Beach",            city:"Sitges",     country:"España",        continent:"Europa",           style:"Balboa",       type:"festival"},
+  {day:10, month:"Mayo",  year:2025, name:"Lindy Hop Sevilla",              city:"Sevilla",    country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"social"},
+  {day:15, month:"Mayo",  year:2025, name:"Paris Bal Swing",                city:"París",      country:"Francia",       continent:"Europa",           style:"Blues",        type:"social"},
+  {day:17, month:"Mayo",  year:2025, name:"Workshop con Skye & Frida",      city:"Barcelona",  country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"workshop"},
+  {day:22, month:"Mayo",  year:2025, name:"Berlin Solo Jazz Weekend",       city:"Berlín",     country:"Alemania",      continent:"Europa",           style:"Solo Jazz",    type:"workshop"},
+  {day:24, month:"Mayo",  year:2025, name:"Campeonato Nacional Swing",      city:"Valencia",   country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"competicion"},
+  {day:30, month:"Mayo",  year:2025, name:"London Swing Exchange",          city:"Londres",    country:"United Kingdom",continent:"Europa",           style:"Lindy Hop",    type:"exchange"},
+  // Junio
+  {day:5,  month:"Junio", year:2025, name:"Warsaw Balboa Festival",         city:"Varsovia",   country:"Poland",        continent:"Europa",           style:"Balboa",       type:"festival"},
+  {day:7,  month:"Junio", year:2025, name:"Verano Swing Bilbao",            city:"Bilbao",     country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  {day:12, month:"Junio", year:2025, name:"NYC Lindy Exchange",             city:"Nueva York", country:"United States", continent:"América del Norte",style:"Lindy Hop",    type:"exchange"},
+  {day:14, month:"Junio", year:2025, name:"Paris Swing Nights",             city:"París",      country:"Francia",       continent:"Europa",           style:"Charleston",   type:"social"},
+  {day:19, month:"Junio", year:2025, name:"Rome Boogie Woogie Festival",    city:"Roma",       country:"Italia",        continent:"Europa",           style:"Boogie Woogie",type:"festival"},
+  {day:21, month:"Junio", year:2025, name:"Blues & Swing al Aire",          city:"Madrid",     country:"España",        continent:"Europa",           style:"Blues",        type:"social"},
+  {day:26, month:"Junio", year:2025, name:"Stockholm Shag Weekend",         city:"Estocolmo",  country:"Sweden",        continent:"Europa",           style:"Shag",         type:"workshop"},
+  {day:28, month:"Junio", year:2025, name:"Herräng Dance Camp — Week 1",    city:"Herräng",    country:"Sweden",        continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  // Julio
+  {day:5,  month:"Julio", year:2025, name:"Taller Intensivo Balboa BCN",    city:"Barcelona",  country:"España",        continent:"Europa",           style:"Balboa",       type:"workshop"},
+  {day:5,  month:"Julio", year:2025, name:"Herräng Dance Camp — Week 2",    city:"Herräng",    country:"Sweden",        continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  {day:10, month:"Julio", year:2025, name:"San Francisco Lindy Fest",       city:"San Fran.",  country:"United States", continent:"América del Norte",style:"Lindy Hop",    type:"festival"},
+  {day:12, month:"Julio", year:2025, name:"Costa Swing Festival",           city:"Málaga",     country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  {day:18, month:"Julio", year:2025, name:"Prague Jazz & Swing Weekend",    city:"Praga",      country:"Czech Republic",continent:"Europa",           style:"Solo Jazz",    type:"social"},
+  {day:24, month:"Julio", year:2025, name:"Amsterdam Blues Exchange",       city:"Ámsterdam",  country:"Netherlands",   continent:"Europa",           style:"Blues",        type:"exchange"},
+  // Agosto
+  {day:2,  month:"Agosto",year:2025, name:"Edinburgh Swing Festival",       city:"Edimburgo",  country:"United Kingdom",continent:"Europa",           style:"Lindy Hop",    type:"festival"},
+  {day:8,  month:"Agosto",year:2025, name:"Valencia Swing Summer",          city:"Valencia",   country:"España",        continent:"Europa",           style:"Lindy Hop",    type:"social"},
+  {day:14, month:"Agosto",year:2025, name:"Copenhagen Bal Weekend",         city:"Copenhague", country:"Denmark",       continent:"Europa",           style:"Balboa",       type:"workshop"},
+  {day:21, month:"Agosto",year:2025, name:"Tokyo Lindy Festival",           city:"Tokio",      country:"Japan",         continent:"Asia",             style:"Lindy Hop",    type:"festival"},
+];
+
+/* ══════════════════════════
+   RENDER EVENTS
+══════════════════════════ */
+function renderEvents(data){
+  const out = document.getElementById('events-output');
+  const info = document.getElementById('results-info');
+
+  if(!data.length){
+    out.innerHTML = '<div class="no-results">No se encontraron eventos con los filtros seleccionados.</div>';
+    info.innerHTML = '';
+    return;
+  }
+
+  info.innerHTML = `Mostrando <b>${data.length}</b> evento${data.length!==1?'s':''} en <b>${[...new Set(data.map(e=>e.month+' '+e.year))].length}</b> mese${[...new Set(data.map(e=>e.month+' '+e.year))].length!==1?'s':''}`;
+
+  // Group by month+year
+  const byMonth = {};
+  data.forEach(e=>{
+    const k = e.month + ' ' + e.year;
+    (byMonth[k] = byMonth[k]||[]).push(e);
+  });
+
+  out.innerHTML = Object.entries(byMonth).map(([month, evs])=>`
+    <div class="month-block">
+      <div class="month-title">
+        ${month}
+        <span>${evs.length} evento${evs.length!==1?'s':''}</span>
+      </div>
+      ${evs.map(e=>`
+        <div class="event-row">
+          <div class="event-date">
+            <span class="event-day">${String(e.day).padStart(2,'0')}</span>
+            <span class="event-month-s">${e.month.slice(0,3)}</span>
+          </div>
+          <div class="event-main">
+            <div class="event-name">${e.name}</div>
+            <div class="event-meta">
+              <span class="event-meta-item"><span class="event-meta-dot"></span>${e.city}, ${e.country}</span>
+              <span class="event-meta-item"><span class="event-meta-dot"></span>${e.style}</span>
+              <span class="event-meta-item"><span class="event-meta-dot"></span>${e.continent}</span>
+            </div>
+          </div>
+          <div class="event-aside">
+            <span class="event-tag tag-${e.type}">${e.type}</span>
+            <span class="event-continent">${e.continent}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function applyFilters(){
+  const q   = document.getElementById('f-search').value.toLowerCase();
+  const sty = document.getElementById('f-style').value;
+  const con = document.getElementById('f-continent').value;
+  const cou = document.getElementById('f-country').value;
+  const typ = document.getElementById('f-type').value;
+
+  const filtered = events.filter(e=>{
+    if(q   && !e.name.toLowerCase().includes(q) && !e.city.toLowerCase().includes(q)) return false;
+    if(sty && e.style !== sty) return false;
+    if(con && e.continent !== con) return false;
+    if(cou && e.country !== cou) return false;
+    if(typ && e.type !== typ) return false;
+    return true;
+  });
+  renderEvents(filtered);
+}
+
+function clearFilters(){
+  document.getElementById('f-search').value = '';
+  document.getElementById('f-style').value  = '';
+  document.getElementById('f-continent').value = '';
+  document.getElementById('f-country').value = '';
+  document.getElementById('f-type').value   = '';
+  renderEvents(events);
+}
+
+// Live search on Enter
+document.getElementById('f-search').addEventListener('keydown', e=>{ if(e.key==='Enter') applyFilters(); });
+
+renderEvents(events);
+
+/* ══════════════════════════
+   BLOG
+══════════════════════════ */
+const posts=[
+  {cat:"Historia",   title:"El origen del Lindy Hop: Harlem, 1920",       excerpt:"Cómo nació el baile más influyente del siglo XX en las pistas del Savoy Ballroom.", icon:"♪", date:"2 May 2025"},
+  {cat:"Técnica",    title:"Conexión en el swing: más allá del agarre",    excerpt:"El swing es un diálogo físico. Aprende a escuchar a tu pareja a través del torso.", icon:"🎷", date:"28 Abr 2025"},
+  {cat:"Festivales", title:"Los 5 mejores festivales europeos de 2025",    excerpt:"Desde Herräng hasta Swingroove: las citas imprescindibles para este verano.",        icon:"🎺", date:"20 Abr 2025"},
+  {cat:"Música",     title:"La big band no ha muerto: nuevas orquestas",   excerpt:"Una nueva generación rescata el sonido de los 40 con energía fresca.",              icon:"♩", date:"15 Abr 2025"},
+  {cat:"Entrevista", title:"Skye Humphries: bailar con alma",               excerpt:"El campeón mundial habla de improvisación, musicalidad y por qué el swing no pasa de moda.", icon:"♫", date:"8 Abr 2025"},
+  {cat:"Escena",     title:"Mapa swing de Madrid: dónde bailar",           excerpt:"Guía actualizada de locales, horarios y nivel de pista en la capital.",             icon:"♬", date:"1 Abr 2025"},
+];
+document.getElementById('blog-grid').innerHTML = posts.map((p,i)=>`
+  <article class="blog-card reveal" style="transition-delay:${i*.08}s">
+    <span class="blog-icon">${p.icon}</span>
+    <div class="blog-cat">${p.cat}</div>
+    <h3 class="blog-title">${p.title}</h3>
+    <p class="blog-excerpt">${p.excerpt}</p>
+    <div class="blog-foot"><span>${p.date}</span><a href="#" class="read-more">Leer →</a></div>
+  </article>`).join('');
+
+/* ══════════════════════════
+   SCROLL REVEAL
+══════════════════════════ */
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }});
+},{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ══════════════════════════
+   NAV SCROLL EFFECT
+══════════════════════════ */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+  // parallax hero content
+  const hc = document.querySelector('.hero-content');
+  if(hc) hc.style.transform = `translateX(-50%) translateY(${window.scrollY*.18}px)`;
+});
+
+/* ══════════════════════════
+   PARALLAX LAYERS
+══════════════════════════ */
+const depths = {
+  'l-bg':0,'l-paper':.02,'l-floor':.05,'l-crowd':.12,
+  'l-city':.22,'l-band':.35,'l-drums':.42,'l-trumpet':.55,'l-dancers':.75
+};
+const MAX_X=28, MAX_Y=16;
+let mx=0,my=0,sx=0,sy=0,animT=0;
+
+const heroEl = document.getElementById('hero');
+heroEl.addEventListener('mousemove',e=>{
+  const r=heroEl.getBoundingClientRect();
+  mx=(e.clientX-r.left)/r.width*2-1;
+  my=(e.clientY-r.top)/r.height*2-1;
+});
+heroEl.addEventListener('mouseleave',()=>{ mx=0; my=0; });
+
+async function loadImages(){
+  const map=[
+    ['l-floor',  'image_5.png','100% auto','center bottom',1.0],
+    ['l-crowd',  'image_8.png','cover',    'center bottom',.82],
+    ['l-city',   'image_1.png','62%',      '60% 88%',      .92],
+    ['l-band',   'image_7.png','44%',      '20% bottom',   1.0],
+    ['l-drums',  'image_3.png','28%',      '7% bottom',    1.0],
+    ['l-trumpet','image_4.png','16%',      '80% 91%',      1.0],
+    ['l-dancers','image_2.png','50%',      '47% bottom',   1.0],
+  ];
+  const nameVariants = n => [n, n.replace('image_','Image_'), n.replace('_','-'), n.replace('.png','.jpg'), n.replace('image_','img_')];
+  for(const [id,base,sz,pos,op] of map){
+    let loaded=false;
+    for(const name of nameVariants(base)){
+      try{
+        const d=await window.fs.readFile(name);
+        const url=URL.createObjectURL(new Blob([d]));
+        const el=document.getElementById(id);
+        if(el){ el.style.backgroundImage=`url('${url}')`;el.style.backgroundSize=sz;el.style.backgroundPosition=pos;el.style.opacity=op; }
+        loaded=true;break;
+      }catch(e){}
+    }
+    if(!loaded) console.warn('No se encontró imagen para',id);
+  }
+}
+loadImages();
+
+function raf(){
+  animT+=.007;
+  sx+=(mx-sx)*.055; sy+=(my-sy)*.055;
+  for(const [id,d] of Object.entries(depths)){
+    const el=document.getElementById(id);
+    if(!el)continue;
+    const tx=-sx*MAX_X*d + Math.sin(animT*.65+d*2)*2.2*d;
+    const ty=-sy*MAX_Y*d + Math.cos(animT*.5+d*1.5)*1.4*d;
+    el.style.transform=`translate(${tx}px,${ty}px)`;
+  }
+  requestAnimationFrame(raf);
+}
+raf();
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+---
+import type { Event } from '../types/index.js';
+
+interface Props { events: Event[]; }
+const { events } = Astro.props;
+
+// Prepara opciones únicas para los filtros
+const styles     = [...new Set(events.map(e => e.style))].sort();
+const continents = [...new Set(events.map(e => e.continent))].sort();
+const countries  = [...new Set(events.map(e => e.country))].sort();
+const types      = [...new Set(events.map(e => e.type))].sort();
+
+// Serializa los eventos para el script de filtrado en el cliente
+const eventsJson = JSON.stringify(events);
+
+// Agrupa los eventos por mes para el render inicial (SSR)
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function groupByMonth(evs: Event[]) {
+  const grouped: Record<string, Event[]> = {};
+  for (const e of [...evs].sort((a,b) => a.date.localeCompare(b.date))) {
+    const d   = new Date(e.date);
+    const key = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+    (grouped[key] ??= []).push(e);
+  }
+  return grouped;
+}
+
+const TAG_COLORS: Record<string,string> = {
+  festival:    '#9A9A18', social:     '#3A9A86',
+  workshop:    '#9A2090', competicion:'#9A2020', exchange:'#209A7A',
+};
+
+function fmtDay(dateStr: string) {
+  return new Date(dateStr).getDate().toString().padStart(2,'0');
+}
+function fmtMonthShort(dateStr: string) {
+  return MONTH_NAMES[new Date(dateStr).getMonth()].slice(0,3);
+}
+
+const grouped = groupByMonth(events);
+---
+
+<section id="eventos" class="content">
+  <div class="inner">
+
+    <div class="sec-header">
+      <div class="sec-eyebrow">Próximas citas</div>
+      <h2 class="sec-title">Calendario de eventos</h2>
+      <p class="sec-sub">Todos los festivales y eventos swing del mundo, agrupados por mes</p>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filter-bar">
+      <div class="fg wide">
+        <span class="fl">Buscar</span>
+        <input class="fi" id="f-search" type="text" placeholder="Nombre del evento o ciudad…" />
+      </div>
+
+      <div class="fg">
+        <span class="fl">Estilo</span>
+        <select class="fs" id="f-style">
+          <option value="">Todos</option>
+          {styles.map(s => <option value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div class="fg">
+        <span class="fl">Continente</span>
+        <select class="fs" id="f-cont">
+          <option value="">Todos</option>
+          {continents.map(c => <option value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      <div class="fg">
+        <span class="fl">País</span>
+        <select class="fs" id="f-country">
+          <option value="">Todos</option>
+          {countries.map(c => <option value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      <div class="fg">
+        <span class="fl">Tipo</span>
+        <select class="fs" id="f-type">
+          <option value="">Todos</option>
+          {types.map(t => <option value={t}>{t}</option>)}
+        </select>
+      </div>
+
+      <div class="factions">
+        <button class="fa" id="btn-filter">Filtrar</button>
+        <button class="fc" id="btn-clear">✕ Limpiar</button>
+      </div>
+    </div>
+
+    <p class="results-info" id="results-info"></p>
+
+    <!-- SSR-rendered event list (JS lo reemplaza al filtrar) -->
+    <div id="events-out">
+      {Object.entries(grouped).map(([month, evs]) => (
+        <div class="month-block">
+          <div class="month-hdr">
+            {month}
+            <span>{evs.length} evento{evs.length !== 1 ? 's' : ''}</span>
+          </div>
+          {evs.map(e => (
+            <div class="ev-row">
+              <div class="ev-date">
+                <span class="ev-day">{fmtDay(e.date)}</span>
+                <span class="ev-ms">{fmtMonthShort(e.date)}</span>
+              </div>
+              <div class="ev-info">
+                <div class="ev-name">{e.name}</div>
+                <div class="ev-meta">
+                  <span><i class="dot"></i>{e.city}, {e.country}</span>
+                  <span><i class="dot"></i>{e.style}</span>
+                  <span><i class="dot"></i>{e.continent}</span>
+                </div>
+              </div>
+              <div class="ev-aside">
+                <span class="ev-tag" style={`color:${TAG_COLORS[e.type]};border-color:${TAG_COLORS[e.type]};`}>
+                  {e.type}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+<!-- Inyecta los datos para el filtrado en cliente -->
+<script type="application/json" id="events-data" set:html={eventsJson}></script>
+
+<style>
+  .content  { padding: 86px 5vw; background: var(--dark2); }
+  .inner    { max-width: 1020px; margin: 0 auto; }
+
+  .sec-header { margin-bottom: 2.6rem; }
+  .sec-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: .36em; font-size: 9.5px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: .5rem;
+    font-family: Arial, sans-serif;
+  }
+  .sec-eyebrow::after { content:''; width:26px; height:1px; background:var(--gold); opacity:.4; }
+  .sec-title { font-family: Georgia, serif; font-size: clamp(1.85rem,3.6vw,2.8rem); color: var(--cream); line-height: 1.12; }
+  .sec-sub   { font-style: italic; font-size: .92rem; color: var(--muted); margin-top: .4rem; font-family: Arial, sans-serif; }
+
+  /* Filters */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    margin-bottom: 2.4rem; padding: 18px 20px;
+    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+  }
+  .fg        { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
+  .fg.wide   { flex: 2; min-width: 180px; }
+  .fl        { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: var(--muted); }
+  .fi        { background: #1A1510; border: 1px solid rgba(255,255,255,.1); color: var(--cream2); padding: 8px 11px; font-family: Arial, sans-serif; font-size: 12px; outline: none; width: 100%; transition: border-color .2s; }
+  .fi::placeholder { color: var(--muted); }
+  .fi:focus  { border-color: var(--gold); }
+  .fs        {
+    background: #1A1510; border: 1px solid rgba(255,255,255,.1); color: var(--cream2);
+    padding: 8px 26px 8px 10px; font-family: Arial, sans-serif; font-size: 12px;
+    cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; width: 100%;
+    transition: border-color .2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%238A7A5A'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+  }
+  .fs:focus  { border-color: var(--gold); }
+  .factions  { display: flex; gap: 8px; align-self: flex-end; }
+  .fa        { background: var(--gold); color: var(--dark); border: none; padding: 9px 18px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .17em; text-transform: uppercase; cursor: pointer; font-weight: 700; transition: background .2s; }
+  .fa:hover  { background: var(--gold-l); }
+  .fc        { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,.1); padding: 9px 14px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s; }
+  .fc:hover  { color: var(--cream); border-color: var(--muted); }
+
+  .results-info { font-family: Arial, sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 1.4rem; letter-spacing: .1em; }
+  .results-info b { color: var(--gold); }
+
+  /* Month / rows */
+  .month-block { margin-bottom: 2.2rem; }
+  .month-hdr   {
+    display: flex; align-items: center; gap: 14px;
+    font-family: Georgia, serif; font-size: 1.32rem; color: var(--cream);
+    padding-bottom: 9px; border-bottom: 1px solid rgba(201,168,76,.2);
+  }
+  .month-hdr span { font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+
+  .ev-row {
+    display: grid; grid-template-columns: 70px 1fr auto;
+    align-items: center; gap: 18px;
+    padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.045);
+    cursor: pointer; transition: background .18s, padding-left .18s;
+    position: relative;
+  }
+  .ev-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--gold); transform: scaleY(0);
+    transition: transform .22s; transform-origin: bottom;
+  }
+  .ev-row:hover  { background: rgba(201,168,76,.04); padding-left: 20px; }
+  .ev-row:hover::before { transform: scaleY(1); }
+  .ev-date       { text-align: center; }
+  .ev-day        { font-family: Georgia, serif; font-size: 1.9rem; color: var(--gold); line-height: 1; display: block; }
+  .ev-ms         { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .ev-name       { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 5px; line-height: 1.3; }
+  .ev-meta       { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); font-family: Arial, sans-serif; }
+  .ev-meta span  { display: flex; align-items: center; gap: 5px; }
+  .dot           { width: 3px; height: 3px; border-radius: 50%; background: var(--gold); display: inline-block; flex-shrink: 0; }
+  .ev-tag        { font-size: 9px; letter-spacing: .13em; text-transform: uppercase; padding: 3px 10px; border: 1px solid; font-family: Arial, sans-serif; white-space: nowrap; }
+  .no-results    { padding: 3rem 0; text-align: center; color: var(--muted); font-style: italic; }
+</style>
+
+<script>
+  // Filtrado en el cliente — lee los datos inyectados por Astro en SSR
+  const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                       'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const TAG_COLORS: Record<string,string> = {
+    festival:'#9A9A18', social:'#3A9A86',
+    workshop:'#9A2090', competicion:'#9A2020', exchange:'#209A7A',
+  };
+
+  const raw  = document.getElementById('events-data')!.textContent!;
+  const ALL  = JSON.parse(raw) as any[];
+
+  function fmtDay(d: string) { return new Date(d).getDate().toString().padStart(2,'0'); }
+  function fmtMs(d: string)  { return MONTH_NAMES[new Date(d).getMonth()].slice(0,3); }
+  function monthKey(d: string) {
+    const dt = new Date(d);
+    return `${MONTH_NAMES[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+
+  function render(evs: any[]) {
+    const out  = document.getElementById('events-out')!;
+    const info = document.getElementById('results-info')!;
+    if (!evs.length) {
+      out.innerHTML = '<div class="no-results">No se encontraron eventos con los filtros seleccionados.</div>';
+      info.innerHTML = ''; return;
+    }
+    const sorted = [...evs].sort((a,b) => a.date.localeCompare(b.date));
+    const byMonth: Record<string,any[]> = {};
+    sorted.forEach(e => { (byMonth[monthKey(e.date)] ??= []).push(e); });
+    const months = Object.keys(byMonth);
+    info.innerHTML = `Mostrando <b>${evs.length}</b> evento${evs.length!==1?'s':''} en <b>${months.length}</b> mes${months.length!==1?'es':''}`;
+    out.innerHTML = months.map(m => `
+      <div class="month-block">
+        <div class="month-hdr">${m}<span>${byMonth[m].length} evento${byMonth[m].length!==1?'s':''}</span></div>
+        ${byMonth[m].map(e => `
+          <div class="ev-row">
+            <div class="ev-date">
+              <span class="ev-day">${fmtDay(e.date)}</span>
+              <span class="ev-ms">${fmtMs(e.date)}</span>
+            </div>
+            <div class="ev-info">
+              <div class="ev-name">${e.name}</div>
+              <div class="ev-meta">
+                <span><i class="dot"></i>${e.city}, ${e.country}</span>
+                <span><i class="dot"></i>${e.style}</span>
+                <span><i class="dot"></i>${e.continent}</span>
+              </div>
+            </div>
+            <div class="ev-aside">
+              <span class="ev-tag" style="color:${TAG_COLORS[e.type]};border-color:${TAG_COLORS[e.type]};">${e.type}</span>
+            </div>
+          </div>`).join('')}
+      </div>`).join('');
+  }
+
+  function applyFilters() {
+    const q  = (document.getElementById('f-search') as HTMLInputElement).value.toLowerCase();
+    const s  = (document.getElementById('f-style')   as HTMLSelectElement).value;
+    const c  = (document.getElementById('f-cont')    as HTMLSelectElement).value;
+    const co = (document.getElementById('f-country') as HTMLSelectElement).value;
+    const t  = (document.getElementById('f-type')    as HTMLSelectElement).value;
+    render(ALL.filter(e => {
+      if (q  && !e.name.toLowerCase().includes(q) && !e.city.toLowerCase().includes(q)) return false;
+      if (s  && e.style     !== s)  return false;
+      if (c  && e.continent !== c)  return false;
+      if (co && e.country   !== co) return false;
+      if (t  && e.type      !== t)  return false;
+      return true;
+    }));
+  }
+
+  document.getElementById('btn-filter')!.addEventListener('click', applyFilters);
+  document.getElementById('btn-clear')!.addEventListener('click', () => {
+    ['f-search','f-style','f-cont','f-country','f-type'].forEach(id => {
+      (document.getElementById(id) as HTMLInputElement|HTMLSelectElement).value = '';
+    });
+    render(ALL);
+    document.getElementById('results-info')!.innerHTML = '';
+  });
+  (document.getElementById('f-search') as HTMLInputElement)
+    .addEventListener('keydown', e => { if (e.key === 'Enter') applyFilters(); });
+</script>
