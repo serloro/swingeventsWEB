@@ -4,7 +4,9 @@
       "Bash(diskutil info *)",
       "Bash(cp /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/Index.astro /tmp/index_page_tmp.astro)",
       "Bash(rm /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/Index.astro)",
-      "Bash(cp /tmp/index_page_tmp.astro /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/index.astro)"
+      "Bash(cp /tmp/index_page_tmp.astro /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/index.astro)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:4321)"
     ]
   }
 }

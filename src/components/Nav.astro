@@ -15,7 +15,16 @@
     <a href="#blog">Noticias</a>
     <a href="/sobre-nosotros">Sobre nosotros</a>
   </div>
+  <button class="nav-burger" id="nav-burger" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+  <a href="#eventos">Eventos</a>
+  <a href="#blog">Noticias</a>
+  <a href="/sobre-nosotros">Sobre nosotros</a>
+</div>
 
 <style>
   #nav {
@@ -57,11 +66,71 @@
   }
   .nav-links a:hover  { color: var(--cream); }
   .nav-links a:hover::after { width: 100%; }
+
+  /* Hamburger button */
+  .nav-burger {
+    display: none; flex-direction: column; justify-content: center;
+    gap: 5px; background: none; border: none; cursor: pointer;
+    padding: 6px; z-index: 101;
+  }
+  .nav-burger span {
+    display: block; width: 22px; height: 1.5px;
+    background: var(--cream); transition: transform .3s, opacity .3s;
+    transform-origin: center;
+  }
+  .nav-burger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .nav-burger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-burger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* Mobile menu panel */
+  .nav-mobile {
+    position: fixed; top: 66px; left: 0; right: 0; z-index: 99;
+    background: rgba(10,7,4,.97); backdrop-filter: blur(14px);
+    display: flex; flex-direction: column;
+    transform: translateY(-110%); opacity: 0;
+    transition: transform .35s cubic-bezier(.4,0,.2,1), opacity .3s;
+    pointer-events: none;
+    border-bottom: 1px solid rgba(201,168,76,.15);
+  }
+  .nav-mobile.open {
+    transform: translateY(0); opacity: 1; pointer-events: all;
+  }
+  .nav-mobile a {
+    padding: 18px 5vw; font-family: Arial, sans-serif;
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid rgba(255,255,255,.05);
+    transition: color .2s, background .2s;
+  }
+  .nav-mobile a:last-child { border-bottom: none; }
+  .nav-mobile a:hover { color: var(--cream); background: rgba(255,255,255,.03); }
+
+  @media (max-width: 720px) {
+    .nav-links  { display: none; }
+    .nav-burger { display: flex; }
+  }
 </style>
 
 <script>
-  // Añade clase .scrolled al hacer scroll
   window.addEventListener('scroll', () => {
     document.getElementById('nav')?.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
+  const burger     = document.getElementById('nav-burger')!;
+  const mobileMenu = document.getElementById('nav-mobile')!;
+
+  burger.addEventListener('click', () => {
+    const open = burger.classList.toggle('open');
+    mobileMenu.classList.toggle('open', open);
+    burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    mobileMenu.setAttribute('aria-hidden', String(!open));
+  });
+
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      burger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+      burger.setAttribute('aria-label', 'Abrir menú');
+      mobileMenu.setAttribute('aria-hidden', 'true');
+    });
   });
 </script>

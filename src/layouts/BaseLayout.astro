@@ -28,15 +28,44 @@ const {
       --dark: #0D0A07; --dark2: #111009; --dark3: #1A1510;
       --cream: #F0E6C8; --cream2: #D4C49A; --muted: #8A7A5A;
     }
-    html  { scroll-behavior: smooth; }
+    html  { scroll-behavior: smooth; scroll-padding-top: 80px; }
     body  { background: var(--dark); color: var(--cream); font-family: Georgia, serif; overflow-x: hidden; }
     ::-webkit-scrollbar       { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--dark); }
     ::-webkit-scrollbar-thumb { background: var(--teal-l); }
     a { text-decoration: none; }
+
+    /* Reveal scroll animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .7s ease, transform .7s ease;
+      transition-delay: var(--rd, 0s);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
   </style>
 </head>
 <body>
   <slot />
+  <script>
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          (e.target as HTMLElement).classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '-10px 0px' });
+
+    function observeReveal() {
+      document.querySelectorAll('.reveal:not(.visible)').forEach(el => io.observe(el));
+    }
+    observeReveal();
+    // Re-scan when EventCalendar re-renders after filtering
+    document.addEventListener('events-rendered', observeReveal);
+  </script>
 </body>
 </html>

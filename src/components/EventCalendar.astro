@@ -45,14 +45,14 @@ const grouped = groupByMonth(events);
 <section id="eventos" class="content">
   <div class="inner">
 
-    <div class="sec-header">
+    <div class="sec-header reveal">
       <div class="sec-eyebrow">Próximas citas</div>
       <h2 class="sec-title">Calendario de eventos</h2>
       <p class="sec-sub">Todos los festivales y eventos swing del mundo, agrupados por mes</p>
     </div>
 
     <!-- Filter bar -->
-    <div class="filter-bar" id="filter-bar">
+    <div class="filter-bar reveal" id="filter-bar" style="--rd:.15s">
       <div class="fg wide">
         <span class="fl">Buscar</span>
         <input class="fi" id="f-search" type="text" placeholder="Nombre del evento o ciudad…" />
@@ -100,8 +100,8 @@ const grouped = groupByMonth(events);
 
     <!-- SSR-rendered event list (JS lo reemplaza al filtrar) -->
     <div id="events-out">
-      {Object.entries(grouped).map(([month, evs]) => (
-        <div class="month-block">
+      {Object.entries(grouped).map(([month, evs], i) => (
+        <div class="month-block reveal" style={`--rd:${0.1 + i * 0.08}s`}>
           <div class="month-hdr">
             {month}
             <span>{evs.length} evento{evs.length !== 1 ? 's' : ''}</span>
@@ -247,8 +247,8 @@ const grouped = groupByMonth(events);
     sorted.forEach(e => { (byMonth[monthKey(e.date)] ??= []).push(e); });
     const months = Object.keys(byMonth);
     info.innerHTML = `Mostrando <b>${evs.length}</b> evento${evs.length!==1?'s':''} en <b>${months.length}</b> mes${months.length!==1?'es':''}`;
-    out.innerHTML = months.map(m => `
-      <div class="month-block">
+    out.innerHTML = months.map((m, i) => `
+      <div class="month-block reveal visible" style="--rd:${i * 0.08}s">
         <div class="month-hdr">${m}<span>${byMonth[m].length} evento${byMonth[m].length!==1?'s':''}</span></div>
         ${byMonth[m].map(e => `
           <div class="ev-row">
