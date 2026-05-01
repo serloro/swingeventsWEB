@@ -6,7 +6,10 @@
       "Bash(rm /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/Index.astro)",
       "Bash(cp /tmp/index_page_tmp.astro /Volumes/SEGUNDO_DISCO/DESCARGAS/srcSwing/src/pages/index.astro)",
       "Bash(npm run *)",
-      "Bash(curl -s http://localhost:4321)"
+      "Bash(curl -s http://localhost:4321)",
+      "Bash(kill %1)",
+      "Bash(curl -s http://localhost:4323)",
+      "Bash(curl -s \"http://localhost:4323/src/components/Hero.astro?astro&type=script&index=0&lang.ts\")"
     ]
   }
 }
