@@ -5,10 +5,9 @@
 // pasa las URLs como props y úsalas en el style de cada .plx-img.
 
 const layers = [
-  { id: 'l-crowd',   src: '/images/layer-crowd.png',   z: 3,  imgStyle: 'width:100%;left:0;bottom:0;opacity:.8;' },
-  { id: 'l-band',    src: '/images/layer-band.png',    z: 5,  imgStyle: 'width:42%;left:2%;bottom:0;' },
-  { id: 'l-drums',   src: '/images/layer-drums.png',   z: 6,  imgStyle: 'width:30%;right:-2%;bottom:0;' },
-  { id: 'l-dancers', src: '/images/layer-dancers.png', z: 8,  imgStyle: 'width:48%;left:26%;bottom:0;' },
+  { id: 'l-fondo',   src: '/images/layer_fondo.png',   z: 2 },
+  { id: 'l-musicos', src: '/images/layer_musicos.png', z: 5 },
+  { id: 'l-crowd',   src: '/images/layer_crowd.png',   z: 7 },
 ];
 ---
 
@@ -20,9 +19,9 @@ const layers = [
   </div>
 
   <!-- Image layers -->
-  {layers.map(({ id, src, z, imgStyle }) => (
+  {layers.map(({ id, src, z }) => (
     <div class="plx plx-img-wrap" id={id} style={`z-index:${z};`}>
-      <img src={src} alt="" style={`position:absolute;display:block;max-width:none;${imgStyle}`} loading="eager" />
+      <img src={src} alt="" class="layer-img" loading="eager" />
     </div>
   ))}
 
@@ -74,6 +73,12 @@ const layers = [
     will-change: transform;
   }
   .plx-img-wrap { pointer-events: none; }
+  .layer-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center bottom;
+    display: block; max-width: none;
+  }
 
   .hero-fade {
     position: absolute; inset: 0; z-index: 10; pointer-events: none;
@@ -174,30 +179,11 @@ const layers = [
 
   /* ── Responsive ─────────────────────────────────────── */
   @media (max-width: 720px) {
-    /* Stats bar */
     .hero-stat  { padding: 10px clamp(8px, 3.5vw, 20px); }
     .stat-n     { font-size: 1.15rem; }
     .stat-l     { font-size: 7.5px; letter-spacing: .12em; }
     .scroll-hint { display: none; }
-
-    /*
-      En móvil portrait la pantalla es alta y estrecha.
-      Escalar por ALTURA en lugar de anchura mantiene las proporciones
-      y hace que los personajes llenen bien la pantalla.
-      El contenedor .plx mide 112vh, así que height:72% ≈ 81vh.
-    */
-
-    /* Crowd: cubre todo el fondo con object-fit */
-    #l-crowd img {
-      width: 100% !important; height: 100% !important;
-      object-fit: cover !important; object-position: center bottom !important;
-      left: 0 !important; bottom: 0 !important;
-    }
-
-    /* Personajes: tamaño por altura, ancho automático (mantiene proporción) */
-    #l-band    img { height: 62% !important; width: auto !important; left: 0 !important;         bottom: 0 !important; }
-    #l-drums   img { height: 52% !important; width: auto !important; right: 0 !important; left: auto !important; bottom: 0 !important; }
-    #l-dancers img { height: 78% !important; width: auto !important; left: 8% !important;         bottom: 0 !important; }
+    /* Las imágenes usan object-fit:cover → se adaptan solas a portrait y landscape */
   }
 
   @media (max-width: 480px) {
@@ -214,8 +200,7 @@ const layers = [
 
 <script>
   const DEPTHS: Record<string, number> = {
-    'l-bg': 0, 'l-crowd': .12,
-    'l-band': .35, 'l-drums': .42, 'l-dancers': .75,
+    'l-bg': 0, 'l-fondo': .08, 'l-musicos': .38, 'l-crowd': .68,
   };
   // PIVOT_Y: depth donde se invierte la dirección Y (por encima baja, por debajo sube)
   const MX = 26, MY = 22, SCROLL_MX = 52, PIVOT_Y = 0.38, SPREAD_Y = 4.0;
