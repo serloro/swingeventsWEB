@@ -9,7 +9,11 @@
       "Bash(curl -s http://localhost:4321)",
       "Bash(kill %1)",
       "Bash(curl -s http://localhost:4323)",
-      "Bash(curl -s \"http://localhost:4323/src/components/Hero.astro?astro&type=script&index=0&lang.ts\")"
+      "Bash(curl -s \"http://localhost:4323/src/components/Hero.astro?astro&type=script&index=0&lang.ts\")",
+      "Bash(curl -s http://localhost:4321/madrid-swing-festival/2025/)",
+      "Bash(curl -s http://localhost:4321/artista/skye-humphries/)",
+      "Bash(curl -s http://localhost:4321/blog/noticias/origen-lindy-hop/)",
+      "Bash(curl -s http://localhost:4321/)"
     ]
   }
 }

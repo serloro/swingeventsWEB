@@ -6,7 +6,7 @@ const { posts } = Astro.props;
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 ---
 
@@ -21,16 +21,16 @@ function fmtDate(iso: string) {
 
     <div class="blog-grid">
       {posts.map((p, i) => (
-        <article class="blog-card reveal" style={`--rd:${0.1 + i * 0.1}s`}>
+        <a href={`/blog/noticias/${p.slug}`} class="blog-card reveal" style={`--rd:${0.1 + i * 0.1}s`}>
           <span class="blog-icon">{p.icon ?? '♪'}</span>
           <div class="blog-cat">{p.category}</div>
-          <h3 class="blog-title">{p.title}</h3>
+          <h3 class="blog-title" transition:name={`post-title-${p.slug}`}>{p.title}</h3>
           <p class="blog-exc">{p.excerpt}</p>
           <div class="blog-foot">
             <span>{fmtDate(p.date)}</span>
-            <a href={`/blog/${p.slug}`} class="read-more">Leer →</a>
+            <span class="read-more">Leer <span class="rm-arrow">→</span></span>
           </div>
-        </article>
+        </a>
       ))}
     </div>
 
@@ -58,23 +58,51 @@ function fmtDate(iso: string) {
     gap: 1px;
     background: rgba(255,255,255,.05);
   }
+
+  /* Tarjeta completa es un <a> — reset estilos de enlace */
   .blog-card {
+    display: flex; flex-direction: column;
     background: var(--dark); padding: 26px;
-    transition: background .22s; position: relative; overflow: hidden;
+    color: inherit;
+    transition: background .25s, transform .3s cubic-bezier(.2,0,.2,1), box-shadow .3s;
+    position: relative; overflow: hidden;
   }
   .blog-card::after {
     content: ''; position: absolute; bottom: 0; left: 0; right: 0;
     height: 2px; background: var(--gold);
-    transform: scaleX(0); transition: transform .3s; transform-origin: left;
+    transform: scaleX(0); transition: transform .32s cubic-bezier(.2,0,.2,1); transform-origin: left;
   }
-  .blog-card:hover { background: var(--dark2); }
+  .blog-card:hover {
+    background: var(--dark2);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(201,168,76,.12);
+    z-index: 1;
+  }
   .blog-card:hover::after { transform: scaleX(1); }
 
-  .blog-icon  { font-size: 1.65rem; margin-bottom: 12px; display: block; }
+  /* Icono rebota al hover */
+  .blog-icon {
+    font-size: 1.65rem; margin-bottom: 12px; display: block;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    transform-origin: center bottom;
+  }
+  .blog-card:hover .blog-icon { transform: scale(1.22) rotate(6deg); }
+
   .blog-cat   { font-size: 9px; letter-spacing: .28em; text-transform: uppercase; color: var(--teal-l); margin-bottom: 8px; font-family: Arial, sans-serif; }
-  .blog-title { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 9px; line-height: 1.4; }
+
+  /* Título se ilumina levemente */
+  .blog-title {
+    font-family: Georgia, serif; font-size: 1rem; color: var(--cream);
+    margin-bottom: 9px; line-height: 1.4; flex: 1;
+    transition: color .2s;
+  }
+  .blog-card:hover .blog-title { color: #FAF5E8; }
+
   .blog-exc   { font-size: 12px; color: var(--muted); line-height: 1.65; margin-bottom: 14px; font-family: Arial, sans-serif; }
-  .blog-foot  { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--muted); font-family: Arial, sans-serif; }
+  .blog-foot  { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--muted); font-family: Arial, sans-serif; margin-top: auto; }
+
+  /* Flecha se desliza a la derecha */
   .read-more  { color: var(--gold); font-weight: 700; }
-  .read-more:hover { color: var(--gold-l); }
+  .rm-arrow   { display: inline-block; transition: transform .22s cubic-bezier(.2,0,.2,1); }
+  .blog-card:hover .rm-arrow { transform: translateX(5px); }
 </style>

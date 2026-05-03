@@ -1,0 +1,472 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Nav       from '../../../components/Nav.astro';
+import Footer    from '../../../components/Footer.astro';
+import { getEvents, slugify } from '../../../lib/directus.js';
+import type { Event, Artist } from '../../../types/index.js';
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  return events
+    .filter(e => e.type === 'festival')
+    .map(event => ({
+      params: {
+        festival: slugify(event.name),
+        year:     String(new Date(event.date).getFullYear()),
+      },
+      props: { event },
+    }));
+}
+
+interface Props { event: Event }
+const { event } = Astro.props;
+
+const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio',
+                     'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function fmtFullDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+const teachers = event.artists?.filter(a => a.role === 'teacher') ?? [];
+const bands    = event.artists?.filter(a => a.role === 'band' || a.role === 'dj') ?? [];
+
+// Iniciales para el avatar
+function initials(name: string): string {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+const TAG_COLORS: Record<string, string> = {
+  festival: '#9A9A18', social: '#3A9A86',
+  workshop: '#9A2090', competicion: '#9A2020', exchange: '#209A7A',
+};
+---
+
+<BaseLayout
+  title={`${event.name} ${new Date(event.date).getFullYear()} — Swing Festivals`}
+  description={event.description ?? `${event.name} en ${event.city}, ${event.country}.`}
+>
+  <Nav />
+
+  <div class="festival-page">
+
+    <!-- Hero -->
+    <header class="fhero">
+      <div class="fhero-bg-glow"></div>
+
+      <a href="/#eventos" class="back-link reveal">← Volver al calendario</a>
+
+      <div class="fhero-badges reveal" style="--rd:.05s">
+        <span class="badge-type" style={`color:${TAG_COLORS[event.type]};border-color:${TAG_COLORS[event.type]}`}>
+          {event.type}
+        </span>
+        <span class="badge-style">{event.style}</span>
+      </div>
+
+      <h1 class="fhero-name reveal" style="--rd:.1s" transition:name={`festival-${event.id}`}>
+        {event.name}
+      </h1>
+
+      <div class="fhero-date reveal" style="--rd:.15s">
+        <span class="fhero-date-num">{new Date(event.date).getDate()}</span>
+        <div class="fhero-date-info">
+          <span class="fhero-month">{MONTH_NAMES[new Date(event.date).getMonth()].toUpperCase()}</span>
+          <span class="fhero-year">{new Date(event.date).getFullYear()}</span>
+        </div>
+      </div>
+
+      <p class="fhero-loc reveal" style="--rd:.2s">
+        <span class="loc-icon">◈</span>
+        {event.city}, {event.country}
+        <span class="loc-sep">·</span>
+        {event.continent}
+      </p>
+
+      <div class="fhero-actions reveal" style="--rd:.25s">
+        {event.ticketUrl && (
+          <a href={event.ticketUrl} target="_blank" rel="noopener" class="btn-tickets">
+            Entradas →
+          </a>
+        )}
+        {event.url && (
+          <a href={event.url} target="_blank" rel="noopener" class="btn-web">
+            Web oficial
+          </a>
+        )}
+      </div>
+    </header>
+
+    <!-- Descripción -->
+    {event.description && (
+      <section class="fdesc">
+        <div class="fdesc-inner reveal">
+          <div class="sec-eyebrow">Sobre el festival</div>
+          <p class="fdesc-text">{event.description}</p>
+        </div>
+      </section>
+    )}
+
+    <!-- Artistas -->
+    {(teachers.length > 0 || bands.length > 0) && (
+      <section class="fartists">
+        <div class="fartists-inner">
+
+          <div class="sec-header reveal">
+            <div class="sec-eyebrow">Cartel</div>
+            <h2 class="sec-title">Artistas</h2>
+          </div>
+
+          {teachers.length > 0 && (
+            <div class="artists-group reveal" style="--rd:.1s">
+              <h3 class="artists-group-title">
+                <span class="artists-group-icon">◈</span> Profesores
+              </h3>
+              <div class="artists-grid">
+                {teachers.map((artist, i) => (
+                  <a
+                    href={`/artista/${artist.slug}`}
+                    class="artist-card reveal"
+                    style={`--rd:${0.1 + i * 0.08}s`}
+                    transition:name={`artist-card-${artist.slug}`}
+                  >
+                    <div class="artist-avatar artist-avatar--teacher">
+                      {initials(artist.name)}
+                    </div>
+                    <div class="artist-info">
+                      <span class="artist-name" transition:name={`artist-name-${artist.slug}`}>
+                        {artist.name}
+                      </span>
+                      {artist.nationality && (
+                        <span class="artist-nat">{artist.nationality}</span>
+                      )}
+                      {artist.specialties && (
+                        <div class="artist-tags">
+                          {artist.specialties.slice(0, 2).map(s => (
+                            <span class="artist-tag">{s}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span class="artist-arrow">→</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {bands.length > 0 && (
+            <div class="artists-group reveal" style={`--rd:${0.1 + teachers.length * 0.05}s`}>
+              <h3 class="artists-group-title">
+                <span class="artists-group-icon">♪</span> Bandas
+              </h3>
+              <div class="artists-grid">
+                {bands.map((artist, i) => (
+                  <a
+                    href={`/artista/${artist.slug}`}
+                    class="artist-card reveal"
+                    style={`--rd:${0.15 + i * 0.08}s`}
+                    transition:name={`artist-card-${artist.slug}`}
+                  >
+                    <div class="artist-avatar artist-avatar--band">♪</div>
+                    <div class="artist-info">
+                      <span class="artist-name" transition:name={`artist-name-${artist.slug}`}>
+                        {artist.name}
+                      </span>
+                      {artist.nationality && (
+                        <span class="artist-nat">{artist.nationality}</span>
+                      )}
+                      {artist.specialties && (
+                        <div class="artist-tags">
+                          {artist.specialties.slice(0, 2).map(s => (
+                            <span class="artist-tag">{s}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <span class="artist-arrow">→</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </section>
+    )}
+
+    <!-- Info extra -->
+    <section class="finfo">
+      <div class="finfo-inner reveal">
+        <div class="finfo-row">
+          <div class="finfo-item">
+            <span class="finfo-label">Estilo</span>
+            <span class="finfo-val">{event.style}</span>
+          </div>
+          <div class="finfo-item">
+            <span class="finfo-label">Fecha</span>
+            <span class="finfo-val">{fmtFullDate(event.date)}</span>
+          </div>
+          <div class="finfo-item">
+            <span class="finfo-label">Lugar</span>
+            <span class="finfo-val">{event.city}, {event.country}</span>
+          </div>
+          {event.ticketUrl && (
+            <div class="finfo-item">
+              <span class="finfo-label">Entradas</span>
+              <a href={event.ticketUrl} target="_blank" rel="noopener" class="finfo-link">
+                Comprar entradas →
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .festival-page { padding-top: 66px; }
+
+  /* ── Hero ── */
+  .fhero {
+    position: relative; overflow: hidden;
+    padding: 60px 5vw 70px; min-height: 60vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,168,76,.08) 0%, transparent 70%), var(--dark);
+  }
+  .fhero-bg-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(circle 500px at 20% 80%, rgba(201,168,76,.06) 0%, transparent 70%),
+      radial-gradient(circle 400px at 80% 20%, rgba(58,154,134,.04) 0%, transparent 70%);
+  }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--muted); transition: color .2s, transform .22s; margin-bottom: 2rem;
+    position: relative; z-index: 1;
+  }
+  .back-link:hover { color: var(--gold); transform: translateX(-4px); }
+
+  .fhero-badges {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 1.2rem; position: relative; z-index: 1;
+  }
+  .badge-type {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .22em; text-transform: uppercase;
+    padding: 4px 12px; border: 1px solid;
+  }
+  .badge-style {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .22em; text-transform: uppercase;
+    padding: 4px 12px; border: 1px solid rgba(201,168,76,.3);
+    color: var(--gold);
+  }
+
+  .fhero-name {
+    font-family: Georgia, serif;
+    font-size: clamp(2.2rem, 7vw, 5rem);
+    color: var(--cream); line-height: 1.05;
+    margin-bottom: 1.6rem; position: relative; z-index: 1;
+  }
+
+  .fhero-date {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 1rem; position: relative; z-index: 1;
+  }
+  .fhero-date-num {
+    font-family: Georgia, serif; font-size: 4rem; color: var(--gold);
+    line-height: 1;
+  }
+  .fhero-date-info { display: flex; flex-direction: column; }
+  .fhero-month {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--muted);
+  }
+  .fhero-year {
+    font-family: Georgia, serif; font-size: 1.4rem; color: var(--cream2);
+  }
+
+  .fhero-loc {
+    display: flex; align-items: center; gap: 10px;
+    font-family: Arial, sans-serif; font-size: 13px; color: var(--cream2);
+    margin-bottom: 1.8rem; position: relative; z-index: 1;
+  }
+  .loc-icon { color: var(--gold); font-size: .8em; }
+  .loc-sep  { color: var(--muted); }
+
+  .fhero-actions {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    position: relative; z-index: 1;
+  }
+  .btn-tickets {
+    background: var(--gold); color: var(--dark);
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .18em; text-transform: uppercase; font-weight: 700;
+    padding: 12px 24px;
+    transition: background .2s, transform .18s, box-shadow .2s;
+  }
+  .btn-tickets:hover {
+    background: var(--gold-l);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(201,168,76,.35);
+  }
+  .btn-tickets:active { transform: translateY(0); box-shadow: none; }
+  .btn-web {
+    border: 1px solid rgba(255,255,255,.15); color: var(--muted);
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .18em; text-transform: uppercase;
+    padding: 12px 24px; transition: color .2s, border-color .2s, transform .18s;
+  }
+  .btn-web:hover { color: var(--cream); border-color: rgba(255,255,255,.3); transform: translateY(-2px); }
+  .btn-web:active { transform: translateY(0); }
+
+  /* ── Descripción ── */
+  .fdesc { background: var(--dark2); padding: 56px 5vw; }
+  .fdesc-inner { max-width: 740px; margin: 0 auto; }
+  .sec-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: .36em; font-size: 9.5px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: .8rem;
+    font-family: Arial, sans-serif;
+  }
+  .sec-eyebrow::after { content: ''; width: 26px; height: 1px; background: var(--gold); opacity: .4; }
+  .fdesc-text {
+    font-family: Georgia, serif; font-size: 1.08rem;
+    color: var(--cream2); line-height: 1.8; font-style: italic;
+    border-left: 2px solid var(--gold); padding-left: 1.3rem;
+  }
+
+  /* ── Artistas ── */
+  .fartists { padding: 64px 5vw; background: var(--dark); }
+  .fartists-inner { max-width: 1000px; margin: 0 auto; }
+
+  .sec-header { margin-bottom: 2.4rem; }
+  .sec-title {
+    font-family: Georgia, serif; font-size: clamp(1.6rem,3.2vw,2.4rem);
+    color: var(--cream); line-height: 1.12;
+  }
+
+  .artists-group { margin-bottom: 3rem; }
+  .artists-group-title {
+    display: flex; align-items: center; gap: 10px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .26em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 1.4rem;
+    padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .artists-group-icon { color: var(--gold); }
+
+  .artists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px; background: rgba(255,255,255,.04);
+  }
+
+  .artist-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 20px; background: var(--dark);
+    transition: background .22s, padding-left .22s;
+    cursor: pointer; position: relative; overflow: hidden;
+    color: inherit;
+  }
+  .artist-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--gold); transform: scaleY(0);
+    transition: transform .25s cubic-bezier(.2,0,.2,1); transform-origin: bottom;
+  }
+  .artist-card:hover { background: var(--dark3); padding-left: 26px; }
+  .artist-card:hover::before { transform: scaleY(1); }
+
+  /* Avatar salta al hover */
+  .artist-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: Arial, sans-serif; font-size: 14px; font-weight: 700;
+    flex-shrink: 0; letter-spacing: .05em;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+  }
+  .artist-card:hover .artist-avatar {
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  }
+  .artist-avatar--teacher {
+    background: rgba(58,154,134,.15); color: var(--teal-l);
+    border: 1.5px solid rgba(58,154,134,.3);
+  }
+  .artist-card:hover .artist-avatar--teacher { box-shadow: 0 4px 16px rgba(58,154,134,.25); }
+  .artist-avatar--band {
+    background: rgba(201,168,76,.12); color: var(--gold);
+    border: 1.5px solid rgba(201,168,76,.25);
+    font-size: 1.3rem;
+  }
+  .artist-card:hover .artist-avatar--band { box-shadow: 0 4px 16px rgba(201,168,76,.2); }
+
+  .artist-info {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .artist-name {
+    font-family: Georgia, serif; font-size: .95rem;
+    color: var(--cream); line-height: 1.3;
+    transition: color .2s;
+  }
+  .artist-card:hover .artist-name { color: var(--gold-l); }
+  .artist-nat {
+    font-family: Arial, sans-serif; font-size: 10px;
+    color: var(--muted); letter-spacing: .08em;
+  }
+  .artist-tags {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
+  }
+  .artist-tag {
+    font-family: Arial, sans-serif; font-size: 8.5px;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,168,76,.2);
+    padding: 2px 7px;
+  }
+  .artist-arrow {
+    color: var(--muted); font-size: .85rem;
+    transition: color .25s, transform .3s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0;
+  }
+  .artist-card:hover .artist-arrow { color: var(--gold); transform: translateX(6px); }
+
+  /* ── Info extra ── */
+  .finfo { background: var(--dark2); padding: 48px 5vw; }
+  .finfo-inner { max-width: 1000px; margin: 0 auto; }
+  .finfo-row {
+    display: flex; flex-wrap: wrap; gap: 0;
+    border: 1px solid rgba(255,255,255,.06);
+  }
+  .finfo-item {
+    flex: 1; min-width: 180px;
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 20px 24px; border-right: 1px solid rgba(255,255,255,.06);
+  }
+  .finfo-item:last-child { border-right: none; }
+  .finfo-label {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .28em; text-transform: uppercase; color: var(--muted);
+  }
+  .finfo-val {
+    font-family: Georgia, serif; font-size: .95rem; color: var(--cream2);
+  }
+  .finfo-link {
+    font-family: Arial, sans-serif; font-size: .82rem;
+    color: var(--gold); transition: color .2s;
+  }
+  .finfo-link:hover { color: var(--gold-l); }
+
+  @media (max-width: 600px) {
+    .fhero { padding: 50px 5vw 50px; min-height: auto; }
+    .finfo-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .finfo-item:last-child { border-bottom: none; }
+  }
+</style>

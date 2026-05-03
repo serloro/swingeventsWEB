@@ -1,0 +1,337 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav       from '../../components/Nav.astro';
+import Footer    from '../../components/Footer.astro';
+import { getEvents, getArtists, slugify } from '../../lib/directus.js';
+import type { Artist, Event } from '../../types/index.js';
+
+export async function getStaticPaths() {
+  const [events, standaloneArtists] = await Promise.all([getEvents(), getArtists()]);
+
+  // Recopila todos los artistas únicos (embebidos en eventos + independientes)
+  const map = new Map<string, { artist: Artist; festivals: Event[] }>();
+
+  for (const artist of standaloneArtists) {
+    map.set(artist.slug, { artist, festivals: [] });
+  }
+  for (const event of events) {
+    for (const artist of (event.artists ?? [])) {
+      if (!map.has(artist.slug)) {
+        map.set(artist.slug, { artist, festivals: [] });
+      }
+      if (event.type === 'festival') {
+        map.get(artist.slug)!.festivals.push(event);
+      }
+    }
+  }
+
+  return [...map.entries()].map(([slug, { artist, festivals }]) => ({
+    params: { slug },
+    props:  { artist, festivals },
+  }));
+}
+
+interface Props { artist: Artist; festivals: Event[] }
+const { artist, festivals } = Astro.props;
+
+function initials(name: string): string {
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  teacher: 'Profesor / Profesora',
+  band:    'Banda / Orquesta',
+  dj:      'DJ',
+};
+
+const MONTH_NAMES = ['Ene','Feb','Mar','Abr','May','Jun',
+                     'Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
+---
+
+<BaseLayout
+  title={`${artist.name} — Swing Festivals`}
+  description={artist.bio?.slice(0, 160) ?? `Perfil de ${artist.name} en Swing Festivals.`}
+>
+  <Nav />
+
+  <div class="artist-page">
+
+    <!-- Hero -->
+    <header class="ahero">
+      <div class="ahero-glow"></div>
+
+      <a href="javascript:history.back()" class="back-link reveal">← Volver</a>
+
+      <div class="ahero-layout reveal" style="--rd:.08s">
+        <div class={`ahero-avatar ahero-avatar--${artist.role}`}>
+          {artist.role === 'band' ? '♪' : initials(artist.name)}
+        </div>
+
+        <div class="ahero-text">
+          <span class="ahero-role">{ROLE_LABELS[artist.role] ?? artist.role}</span>
+
+          <h1 class="ahero-name" transition:name={`artist-name-${artist.slug}`}>
+            {artist.name}
+          </h1>
+
+          {artist.nationality && (
+            <p class="ahero-nat">
+              <span class="nat-icon">◈</span> {artist.nationality}
+            </p>
+          )}
+
+          {artist.specialties && artist.specialties.length > 0 && (
+            <div class="ahero-specs">
+              {artist.specialties.map(s => (
+                <span class="spec-pill">{s}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+
+    <!-- Bio -->
+    {artist.bio && (
+      <section class="abio">
+        <div class="abio-inner reveal">
+          <div class="sec-eyebrow">Biografía</div>
+          <p class="abio-text">{artist.bio}</p>
+        </div>
+      </section>
+    )}
+
+    <!-- Festivales donde actúa -->
+    {festivals.length > 0 && (
+      <section class="afests">
+        <div class="afests-inner">
+          <div class="sec-header reveal">
+            <div class="sec-eyebrow">Próximas citas</div>
+            <h2 class="sec-title">Festivales</h2>
+            <p class="sec-sub">Donde puedes ver a {artist.name} este año</p>
+          </div>
+
+          <div class="afests-list">
+            {festivals.map((f, i) => (
+              <a
+                href={`/${slugify(f.name)}/${new Date(f.date).getFullYear()}/`}
+                class="afest-row reveal"
+                style={`--rd:${0.1 + i * 0.07}s`}
+              >
+                <div class="afest-date">
+                  <span class="afest-day">{new Date(f.date).getDate().toString().padStart(2, '0')}</span>
+                  <span class="afest-ms">{MONTH_NAMES[new Date(f.date).getMonth()]}</span>
+                </div>
+                <div class="afest-info">
+                  <span class="afest-name" transition:name={`festival-${f.id}`}>{f.name}</span>
+                  <span class="afest-loc">{f.city}, {f.country}</span>
+                </div>
+                <span class="afest-arrow">→</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Links sociales -->
+    {(artist.instagram || artist.website) && (
+      <section class="asocial">
+        <div class="asocial-inner reveal">
+          <div class="sec-eyebrow">Contacto</div>
+          <div class="social-links">
+            {artist.instagram && (
+              <span class="social-item">
+                <span class="social-label">Instagram</span>
+                <span class="social-val">{artist.instagram}</span>
+              </span>
+            )}
+            {artist.website && (
+              <a href={artist.website} target="_blank" rel="noopener" class="social-item social-link">
+                <span class="social-label">Web</span>
+                <span class="social-val">Visitar →</span>
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
+
+  </div>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .artist-page { padding-top: 66px; }
+
+  /* ── Hero ── */
+  .ahero {
+    position: relative; overflow: hidden;
+    padding: 60px 5vw 70px;
+    background: radial-gradient(ellipse 80% 70% at 30% 100%, rgba(58,154,134,.07) 0%, transparent 70%), var(--dark);
+  }
+  .ahero-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(circle 400px at 10% 90%, rgba(58,154,134,.06) 0%, transparent 70%),
+      radial-gradient(circle 350px at 90% 10%, rgba(201,168,76,.04) 0%, transparent 70%);
+  }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--muted); transition: color .2s, transform .22s; margin-bottom: 2.4rem;
+    position: relative; z-index: 1;
+  }
+  .back-link:hover { color: var(--gold); transform: translateX(-4px); }
+
+  .ahero-layout {
+    display: flex; align-items: flex-start; gap: 28px;
+    position: relative; z-index: 1; flex-wrap: wrap;
+  }
+
+  .ahero-avatar {
+    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: Arial, sans-serif; font-size: 22px; font-weight: 700;
+    letter-spacing: .03em;
+  }
+  .ahero-avatar--teacher {
+    background: rgba(58,154,134,.15); color: var(--teal-l);
+    border: 2px solid rgba(58,154,134,.4);
+  }
+  .ahero-avatar--band {
+    background: rgba(201,168,76,.12); color: var(--gold);
+    border: 2px solid rgba(201,168,76,.3);
+    font-size: 1.8rem;
+  }
+  .ahero-avatar--dj {
+    background: rgba(154,32,144,.12); color: #C070B8;
+    border: 2px solid rgba(154,32,144,.3);
+  }
+
+  .ahero-text { flex: 1; min-width: 220px; }
+  .ahero-role {
+    display: block; font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .32em; text-transform: uppercase; color: var(--teal-l);
+    margin-bottom: .6rem; font-weight: 700;
+  }
+  .ahero-name {
+    font-family: Georgia, serif;
+    font-size: clamp(1.9rem, 5vw, 3.6rem);
+    color: var(--cream); line-height: 1.08; margin-bottom: .8rem;
+  }
+  .ahero-nat {
+    display: flex; align-items: center; gap: 8px;
+    font-family: Arial, sans-serif; font-size: 12px; color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .nat-icon { color: var(--gold); font-size: .75em; }
+
+  .ahero-specs { display: flex; flex-wrap: wrap; gap: 7px; }
+  .spec-pill {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,168,76,.25);
+    padding: 4px 12px;
+  }
+
+  /* ── Bio ── */
+  .abio { background: var(--dark2); padding: 56px 5vw; }
+  .abio-inner { max-width: 740px; margin: 0 auto; }
+  .sec-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: .36em; font-size: 9.5px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: .8rem;
+    font-family: Arial, sans-serif;
+  }
+  .sec-eyebrow::after { content: ''; width: 26px; height: 1px; background: var(--gold); opacity: .4; }
+  .abio-text {
+    font-family: Georgia, serif; font-size: 1.05rem;
+    color: var(--cream2); line-height: 1.85;
+  }
+
+  /* ── Festivales ── */
+  .afests { background: var(--dark); padding: 56px 5vw; }
+  .afests-inner { max-width: 740px; margin: 0 auto; }
+
+  .sec-header { margin-bottom: 2rem; }
+  .sec-title {
+    font-family: Georgia, serif; font-size: clamp(1.6rem,3.2vw,2.2rem);
+    color: var(--cream);
+  }
+  .sec-sub {
+    font-style: italic; font-size: .9rem; color: var(--muted);
+    margin-top: .3rem; font-family: Arial, sans-serif;
+  }
+
+  .afests-list { display: flex; flex-direction: column; }
+
+  .afest-row {
+    display: grid; grid-template-columns: 60px 1fr auto;
+    align-items: center; gap: 16px;
+    padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.045);
+    transition: background .2s, padding-left .22s;
+    position: relative; color: inherit;
+  }
+  .afest-row::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--teal-l); transform: scaleY(0);
+    transition: transform .25s cubic-bezier(.2,0,.2,1); transform-origin: bottom;
+  }
+  .afest-row:hover { background: rgba(58,154,134,.07); padding-left: 20px; }
+  .afest-row:hover::before { transform: scaleY(1); }
+
+  .afest-date { text-align: center; }
+  .afest-day {
+    font-family: Georgia, serif; font-size: 1.7rem; color: var(--teal-l);
+    line-height: 1; display: block; transition: color .2s;
+  }
+  .afest-row:hover .afest-day { color: #4DC0AA; }
+  .afest-ms {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+  }
+  .afest-info {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .afest-name {
+    font-family: Georgia, serif; font-size: 1rem; color: var(--cream);
+    transition: color .2s;
+  }
+  .afest-row:hover .afest-name { color: #FAF5E8; }
+  .afest-loc {
+    font-family: Arial, sans-serif; font-size: 11px; color: var(--muted);
+  }
+  .afest-arrow {
+    color: var(--muted); transition: color .25s, transform .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .afest-row:hover .afest-arrow { color: var(--teal-l); transform: translateX(6px); }
+
+  /* ── Social ── */
+  .asocial { background: var(--dark2); padding: 40px 5vw; }
+  .asocial-inner { max-width: 740px; margin: 0 auto; }
+  .social-links { display: flex; flex-wrap: wrap; gap: 0; margin-top: .6rem; }
+  .social-item {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 16px 24px; border: 1px solid rgba(255,255,255,.06);
+    margin: 0 -1px -1px 0;
+  }
+  .social-link { transition: background .2s; }
+  .social-link:hover { background: rgba(255,255,255,.03); }
+  .social-label {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .26em; text-transform: uppercase; color: var(--muted);
+  }
+  .social-val {
+    font-family: Georgia, serif; font-size: .95rem; color: var(--cream2);
+  }
+  a.social-item .social-val { color: var(--gold); }
+</style>

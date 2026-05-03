@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions';
+
 interface Props {
   title?: string;
   description?: string;
@@ -17,8 +19,7 @@ const {
   <title>{title}</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <!-- Preconnect para Directus assets (opcional) -->
-  <!-- <link rel="preconnect" href={import.meta.env.DIRECTUS_URL} /> -->
+  <ViewTransitions />
 
   <style is:global>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,30 +43,54 @@ const {
       transition: opacity .7s ease, transform .7s ease;
       transition-delay: var(--rd, 0s);
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: none;
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── View Transitions ─────────────────────────────────── */
+    @keyframes vt-in  { from { opacity: 0; transform: translateY(18px); } }
+    @keyframes vt-out { to   { opacity: 0; transform: translateY(-8px); } }
+
+    ::view-transition-old(root) { animation: 0.22s ease-out vt-out; }
+    ::view-transition-new(root) { animation: 0.34s ease-out vt-in backwards; }
+
+    /* Elementos compartidos entre páginas: solo fade+scale suave */
+    ::view-transition-old(shared) {
+      animation: 0.25s ease-out both fade-scale-out;
+    }
+    ::view-transition-new(shared) {
+      animation: 0.35s ease-out both fade-scale-in;
+    }
+    @keyframes fade-scale-out {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.97); }
+    }
+    @keyframes fade-scale-in {
+      from { opacity: 0; transform: scale(1.03); }
+      to   { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
 <body>
   <slot />
   <script>
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          (e.target as HTMLElement).classList.add('visible');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '-10px 0px' });
+    function setupReveal() {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '-10px 0px' });
 
-    function observeReveal() {
       document.querySelectorAll('.reveal:not(.visible)').forEach(el => io.observe(el));
+
+      const reObserve = () =>
+        document.querySelectorAll('.reveal:not(.visible)').forEach(el => io.observe(el));
+      document.addEventListener('events-rendered', reObserve);
     }
-    observeReveal();
-    // Re-scan when EventCalendar re-renders after filtering
-    document.addEventListener('events-rendered', observeReveal);
+
+    // astro:page-load dispara en carga inicial y en cada navegación con ViewTransitions
+    document.addEventListener('astro:page-load', setupReveal);
   </script>
 </body>
 </html>

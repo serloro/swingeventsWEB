@@ -1,0 +1,197 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Nav       from '../../../components/Nav.astro';
+import Footer    from '../../../components/Footer.astro';
+import { getPosts } from '../../../lib/directus.js';
+import type { Post } from '../../../types/index.js';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props:  { post },
+  }));
+}
+
+interface Props { post: Post }
+const { post } = Astro.props;
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Convierte el contenido en HTML con párrafos y **negrita**
+function renderContent(text: string): string {
+  return text
+    .split('\n\n')
+    .map(block => {
+      const html = block
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+      return `<p>${html}</p>`;
+    })
+    .join('');
+}
+---
+
+<BaseLayout title={`${post.title} — Swing Festivals`} description={post.excerpt}>
+  <Nav />
+
+  <article class="post-page">
+
+    <!-- Hero -->
+    <header class="post-hero reveal">
+      <a href="/#blog" class="back-link">← Volver a noticias</a>
+
+      <div class="post-cat-wrap">
+        <span class="post-cat">{post.category}</span>
+        {post.readTime && <span class="post-read">{post.readTime} min de lectura</span>}
+      </div>
+
+      <div class="post-icon-bg">{post.icon ?? '♪'}</div>
+
+      <h1 class="post-title" transition:name={`post-title-${post.slug}`}>
+        {post.title}
+      </h1>
+
+      <div class="post-meta">
+        {post.author && <span class="post-author">{post.author}</span>}
+        <span class="post-dot">·</span>
+        <time>{fmtDate(post.date)}</time>
+      </div>
+
+      <p class="post-excerpt">{post.excerpt}</p>
+    </header>
+
+    <!-- Separador decorativo -->
+    <div class="post-divider">
+      <span></span><span class="post-divider-icon">{post.icon ?? '♪'}</span><span></span>
+    </div>
+
+    <!-- Contenido -->
+    {post.content ? (
+      <div class="post-content reveal" set:html={renderContent(post.content)} />
+    ) : (
+      <p class="post-no-content">Contenido completo próximamente.</p>
+    )}
+
+    <!-- Pie de artículo -->
+    <footer class="post-footer reveal">
+      <a href="/#blog" class="btn-back">← Más artículos</a>
+    </footer>
+
+  </article>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .post-page {
+    max-width: 740px; margin: 0 auto;
+    padding: 100px 5vw 60px;
+  }
+
+  /* Back link */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--muted); transition: color .2s, transform .22s;
+    margin-bottom: 2.2rem;
+  }
+  .back-link:hover { color: var(--gold); transform: translateX(-4px); }
+
+  /* Category + read time */
+  .post-cat-wrap {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 1.4rem;
+  }
+  .post-cat {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .32em; text-transform: uppercase;
+    color: var(--teal-l); font-weight: 700;
+    padding: 4px 12px; border: 1px solid var(--teal-l);
+  }
+  .post-read {
+    font-family: Arial, sans-serif; font-size: 10px;
+    color: var(--muted); letter-spacing: .1em;
+  }
+
+  /* Big decorative icon */
+  .post-icon-bg {
+    font-size: 4.5rem; line-height: 1;
+    margin-bottom: 1rem; opacity: .18;
+    user-select: none; filter: grayscale(1) sepia(1);
+  }
+
+  /* Title */
+  .post-title {
+    font-family: Georgia, serif;
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    color: var(--cream); line-height: 1.12;
+    margin-bottom: 1.2rem;
+    /* view-transition-name comes from transition:name directive */
+  }
+
+  /* Meta */
+  .post-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-family: Arial, sans-serif; font-size: 11px;
+    color: var(--muted); margin-bottom: 1.6rem;
+  }
+  .post-dot { color: var(--gold); }
+  .post-author { color: var(--cream2); }
+
+  /* Excerpt (intro) */
+  .post-excerpt {
+    font-style: italic; font-size: 1.05rem; color: var(--cream2);
+    line-height: 1.7; border-left: 2px solid var(--gold);
+    padding-left: 1.2rem; margin-bottom: 0;
+  }
+
+  /* Decorative divider */
+  .post-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 2.8rem 0;
+  }
+  .post-divider span {
+    flex: 1; height: 1px; background: rgba(201,168,76,.2);
+  }
+  .post-divider-icon {
+    flex: 0; font-size: 1.1rem; color: var(--gold); opacity: .5;
+  }
+
+  /* Body content */
+  .post-content {
+    font-family: Georgia, serif;
+    font-size: 1.05rem; line-height: 1.85; color: var(--cream2);
+  }
+  .post-content :global(p) {
+    margin-bottom: 1.5em;
+  }
+  .post-content :global(p:last-child) { margin-bottom: 0; }
+  .post-content :global(strong) {
+    color: var(--cream); font-weight: 700;
+    display: block; margin-top: .5em;
+    font-size: 1rem; letter-spacing: .02em;
+  }
+  .post-no-content {
+    text-align: center; color: var(--muted);
+    font-style: italic; padding: 3rem 0;
+  }
+
+  /* Footer CTA */
+  .post-footer { margin-top: 3.5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,.06); }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,168,76,.3);
+    padding: 11px 22px; transition: background .2s, color .2s, transform .22s;
+  }
+  .btn-back:hover {
+    background: rgba(201,168,76,.08); color: var(--gold-l);
+    transform: translateX(-4px);
+  }
+  .btn-back:active { transform: translateX(0); }
+</style>
