@@ -94,7 +94,7 @@ const grouped = groupByMonth(events);
     <!-- SSR-rendered event list -->
     <div id="events-out">
       {Object.entries(grouped).map(([month, evs], i) => (
-        <div class="month-block reveal" style={`--rd:${0.1 + i * 0.08}s`}>
+        <div class="month-block">
           <div class="month-hdr">
             {month}
             <span>{evs.length} evento{evs.length !== 1 ? 's' : ''}</span>
@@ -106,6 +106,7 @@ const grouped = groupByMonth(events);
             return (
               <Tag
                 class={`ev-row${isFestival ? ' ev-row--festival' : ''}`}
+
                 href={isFestival ? festUrl : undefined}
                 {...(isFestival ? {} : {})}
               >
@@ -312,7 +313,7 @@ const grouped = groupByMonth(events);
     const months = Object.keys(byMonth);
     info.innerHTML = `Mostrando <b>${evs.length}</b> evento${evs.length !== 1 ? 's' : ''} en <b>${months.length}</b> mes${months.length !== 1 ? 'es' : ''}`;
     out.innerHTML = months.map((m, i) => `
-      <div class="month-block reveal visible" style="--rd:${i * 0.08}s">
+      <div class="month-block">
         <div class="month-hdr">${m}<span>${byMonth[m].length} evento${byMonth[m].length !== 1 ? 's' : ''}</span></div>
         ${byMonth[m].map(eventRow).join('')}
       </div>`).join('');

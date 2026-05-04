@@ -280,8 +280,13 @@ async function fetchEventsFromDirectus(): Promise<Event[]> {
     eventArtistMap.get(ea.event_id)!.push(ea.artist_id);
   }
 
+  const today = new Date().toISOString().slice(0, 10);
+
   return eventsRaw
-    .filter(e => e.dateFrom || e.year)
+    .filter(e => {
+      const end = e.dateTo ?? e.dateFrom;
+      return end != null && end >= today;
+    })
     .map(e => mapEvent(e, festMap, artistMap, eventArtistMap))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
