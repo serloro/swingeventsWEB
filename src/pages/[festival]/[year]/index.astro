@@ -53,6 +53,10 @@ const TAG_COLORS: Record<string, string> = {
 
     <!-- Hero -->
     <header class="fhero">
+      {event.image && (
+        <img src={event.image} alt={event.name} class="fhero-img" />
+      )}
+      <div class="fhero-overlay"></div>
       <div class="fhero-bg-glow"></div>
 
       <a href="/#eventos" class="back-link reveal">← Volver al calendario</a>
@@ -131,7 +135,10 @@ const TAG_COLORS: Record<string, string> = {
                     transition:name={`artist-card-${artist.slug}`}
                   >
                     <div class="artist-avatar artist-avatar--teacher">
-                      {initials(artist.name)}
+                      {artist.image
+                        ? <img src={artist.image} alt={artist.name} class="avatar-img" />
+                        : initials(artist.name)
+                      }
                     </div>
                     <div class="artist-info">
                       <span class="artist-name" transition:name={`artist-name-${artist.slug}`}>
@@ -168,7 +175,12 @@ const TAG_COLORS: Record<string, string> = {
                     style={`--rd:${0.15 + i * 0.08}s`}
                     transition:name={`artist-card-${artist.slug}`}
                   >
-                    <div class="artist-avatar artist-avatar--band">♪</div>
+                    <div class="artist-avatar artist-avatar--band">
+                      {artist.image
+                        ? <img src={artist.image} alt={artist.name} class="avatar-img" />
+                        : '♪'
+                      }
+                    </div>
                     <div class="artist-info">
                       <span class="artist-name" transition:name={`artist-name-${artist.slug}`}>
                         {artist.name}
@@ -238,8 +250,27 @@ const TAG_COLORS: Record<string, string> = {
     display: flex; flex-direction: column; justify-content: flex-end;
     background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(201,168,76,.08) 0%, transparent 70%), var(--dark);
   }
+  /* Capas del hero (de atrás a adelante):
+     z-index 0 → imagen de fondo
+     z-index 1 → overlay oscuro para legibilidad
+     z-index 2 → glow decorativo
+     z-index 3 → contenido de texto */
+  .fhero-img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+    opacity: .55; pointer-events: none; z-index: 0;
+  }
+  .fhero-overlay {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(10,7,4,.45) 0%,
+      rgba(10,7,4,.70) 55%,
+      rgba(10,7,4,.92) 100%
+    );
+  }
   .fhero-bg-glow {
-    position: absolute; inset: 0; pointer-events: none;
+    position: absolute; inset: 0; pointer-events: none; z-index: 2;
     background:
       radial-gradient(circle 500px at 20% 80%, rgba(201,168,76,.06) 0%, transparent 70%),
       radial-gradient(circle 400px at 80% 20%, rgba(58,154,134,.04) 0%, transparent 70%);
@@ -250,13 +281,13 @@ const TAG_COLORS: Record<string, string> = {
     font-family: Arial, sans-serif; font-size: 10px;
     letter-spacing: .22em; text-transform: uppercase;
     color: var(--muted); transition: color .2s, transform .22s; margin-bottom: 2rem;
-    position: relative; z-index: 1;
+    position: relative; z-index: 3;
   }
   .back-link:hover { color: var(--gold); transform: translateX(-4px); }
 
   .fhero-badges {
     display: flex; gap: 8px; flex-wrap: wrap;
-    margin-bottom: 1.2rem; position: relative; z-index: 1;
+    margin-bottom: 1.2rem; position: relative; z-index: 3;
   }
   .badge-type {
     font-family: Arial, sans-serif; font-size: 9px;
@@ -274,12 +305,12 @@ const TAG_COLORS: Record<string, string> = {
     font-family: Georgia, serif;
     font-size: clamp(2.2rem, 7vw, 5rem);
     color: var(--cream); line-height: 1.05;
-    margin-bottom: 1.6rem; position: relative; z-index: 1;
+    margin-bottom: 1.6rem; position: relative; z-index: 3;
   }
 
   .fhero-date {
     display: flex; align-items: center; gap: 14px;
-    margin-bottom: 1rem; position: relative; z-index: 1;
+    margin-bottom: 1rem; position: relative; z-index: 3;
   }
   .fhero-date-num {
     font-family: Georgia, serif; font-size: 4rem; color: var(--gold);
@@ -297,14 +328,14 @@ const TAG_COLORS: Record<string, string> = {
   .fhero-loc {
     display: flex; align-items: center; gap: 10px;
     font-family: Arial, sans-serif; font-size: 13px; color: var(--cream2);
-    margin-bottom: 1.8rem; position: relative; z-index: 1;
+    margin-bottom: 1.8rem; position: relative; z-index: 3;
   }
   .loc-icon { color: var(--gold); font-size: .8em; }
   .loc-sep  { color: var(--muted); }
 
   .fhero-actions {
     display: flex; gap: 12px; flex-wrap: wrap;
-    position: relative; z-index: 1;
+    position: relative; z-index: 3;
   }
   .btn-tickets {
     background: var(--gold); color: var(--dark);
@@ -390,8 +421,11 @@ const TAG_COLORS: Record<string, string> = {
     width: 48px; height: 48px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: Arial, sans-serif; font-size: 14px; font-weight: 700;
-    flex-shrink: 0; letter-spacing: .05em;
+    flex-shrink: 0; letter-spacing: .05em; overflow: hidden;
     transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+  }
+  .avatar-img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
   }
   .artist-card:hover .artist-avatar {
     transform: scale(1.15);

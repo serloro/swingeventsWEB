@@ -1,18 +1,30 @@
 /**
  * src/lib/directus.ts
  *
- * Cliente Directus con fallback automático a datos mock.
+ * Consulta las tablas personalizadas de Directus:
+ *   festivals, events, event_artists, artists
+ * filtradas por application_id = 'swingfestivals'.
+ *
+ * Si Directus no está disponible o USE_MOCK_DATA=true
+ * se usa el dataset mock de abajo como fallback.
  */
 
-import { createDirectus, rest, readItems, staticToken } from '@directus/sdk';
-import type { DirectusSchema, Event, Post, Artist } from '../types/index.js';
+import type { Event, Post, Artist } from '../types/index.js';
 
-// ── Cliente ──────────────────────────────────────────────────────
-const DIRECTUS_URL   = import.meta.env.DIRECTUS_URL   as string | undefined;
-const DIRECTUS_TOKEN = import.meta.env.DIRECTUS_TOKEN as string | undefined;
-const USE_MOCK       = import.meta.env.USE_MOCK_DATA === 'true'
-                       || !DIRECTUS_URL
-                       || !DIRECTUS_TOKEN;
+// ── Config ───────────────────────────────────────────────────────
+const RAW_URL          = import.meta.env.DIRECTUS_URL      as string | undefined;
+const DIRECTUS_EMAIL   = import.meta.env.DIRECTUS_EMAIL    as string | undefined;
+const DIRECTUS_PASS    = import.meta.env.DIRECTUS_PASSWORD as string | undefined;
+const USE_MOCK         = import.meta.env.USE_MOCK_DATA === 'true';
+const DIRECTUS_URL     = RAW_URL?.replace(/\/$/, '');
+const HAS_DIRECTUS     =
+  !!DIRECTUS_URL &&
+  DIRECTUS_URL !== 'https://tu-directus.com' &&
+  DIRECTUS_URL !== 'http://tu-directus.com' &&
+  !!DIRECTUS_EMAIL &&
+  !!DIRECTUS_PASS;
+
+const APP_ID = 'swingfestivals';
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -25,31 +37,289 @@ export function slugify(str: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export function assetUrl(assetId: string | undefined): string | undefined {
-  if (!assetId || !DIRECTUS_URL) return undefined;
-  return `${DIRECTUS_URL}/assets/${assetId}`;
+export function assetUrl(idOrUrl: string | undefined): string | undefined {
+  if (!idOrUrl) return undefined;
+  if (idOrUrl.startsWith('http')) return idOrUrl;
+  if (!DIRECTUS_URL) return undefined;
+  return `${DIRECTUS_URL}/assets/${idOrUrl}`;
 }
 
-// ── Fetchers ─────────────────────────────────────────────────────
+// ── Raw Directus response types ───────────────────────────────────
+
+interface DFestival {
+  id: string;
+  title:       string | null;
+  country:     string | null;
+  city:        string | null;
+  location:    string | null;
+  description: string | null;
+  website:     string | null;
+  instagram:   string | null;
+  imageUrl:    string | null;
+  imagenB64:   string | null;
+}
+
+interface DEvent {
+  id: string;
+  festival_id: string | null;
+  year:        number | null;
+  dateFrom:    string | null;
+  dateTo:      string | null;
+  country:     string | null;
+  city:        string | null;
+  styles:      string | null;
+  sourceUrl:   string | null;
+}
+
+interface DArtist {
+  id: string;
+  name:       string | null;
+  website:    string | null;
+  instagram:  string | null;
+  imageUrl:   string | null;
+  imagenB64:  string | null;
+}
+
+interface DEventArtist {
+  id:        string;
+  event_id:  string;
+  artist_id: string;
+}
+
+// ── Image resolver: URL tiene prioridad sobre base64 ─────────────
+
+function resolveImage(imageUrl: string | null, imagenB64: string | null): string | undefined {
+  if (imageUrl) return assetUrl(imageUrl);
+  if (imagenB64) {
+    if (imagenB64.startsWith('data:')) return imagenB64;
+    return `data:image/jpeg;base64,${imagenB64}`;
+  }
+  return undefined;
+}
+
+// ── Country → Continent lookup ────────────────────────────────────
+
+const CONTINENT: Record<string, string> = {
+  España: 'Europa', Spain: 'Europa',
+  France: 'Europa', Francia: 'Europa',
+  Germany: 'Europa', Alemania: 'Europa',
+  'United Kingdom': 'Europa', 'Reino Unido': 'Europa',
+  Sweden: 'Europa', Suecia: 'Europa',
+  Norway: 'Europa', Noruega: 'Europa',
+  Poland: 'Europa', Polonia: 'Europa',
+  Italy: 'Europa', Italia: 'Europa',
+  Netherlands: 'Europa', 'Países Bajos': 'Europa',
+  Belgium: 'Europa', 'Bélgica': 'Europa',
+  'Czech Republic': 'Europa', 'República Checa': 'Europa',
+  Slovakia: 'Europa', Eslovaquia: 'Europa',
+  Hungary: 'Europa', 'Hungría': 'Europa',
+  Austria: 'Europa',
+  Switzerland: 'Europa', Suiza: 'Europa',
+  Portugal: 'Europa',
+  Denmark: 'Europa', Dinamarca: 'Europa',
+  Finland: 'Europa', Finlandia: 'Europa',
+  Estonia: 'Europa', Latvia: 'Europa', Lithuania: 'Europa',
+  Croatia: 'Europa', Croacia: 'Europa',
+  Serbia: 'Europa', Romania: 'Europa', 'Rumanía': 'Europa',
+  Bulgaria: 'Europa', Greece: 'Europa', Grecia: 'Europa',
+  Russia: 'Europa', Rusia: 'Europa',
+  Ukraine: 'Europa', Ucrania: 'Europa',
+  'United States': 'América del Norte',
+  'Estados Unidos': 'América del Norte',
+  USA: 'América del Norte',
+  Canada: 'América del Norte', 'Canadá': 'América del Norte',
+  Mexico: 'América del Norte', 'México': 'América del Norte',
+  Brazil: 'América del Sur', Brasil: 'América del Sur',
+  Argentina: 'América del Sur', Colombia: 'América del Sur',
+  Chile: 'América del Sur', Peru: 'América del Sur', 'Perú': 'América del Sur',
+  Japan: 'Asia', 'Japón': 'Asia',
+  China: 'Asia',
+  'South Korea': 'Asia', 'Corea del Sur': 'Asia',
+  Taiwan: 'Asia', Thailand: 'Asia', Tailandia: 'Asia',
+  Singapore: 'Asia', 'Singapur': 'Asia', India: 'Asia', Israel: 'Asia',
+  Australia: 'Oceanía', 'New Zealand': 'Oceanía', 'Nueva Zelanda': 'Oceanía',
+  'South Africa': 'África', 'Sudáfrica': 'África',
+};
+
+function getContinent(country: string | null | undefined): string {
+  if (!country) return 'Europa';
+  return CONTINENT[country] ?? 'Europa';
+}
+
+// ── Styles parser (text field, comma-separated or JSON array) ─────
+
+function parseStyles(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+  } catch {}
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+// ── Auth: login con email/password, token cacheado por build ─────
+
+let _cachedToken: string | undefined;
+
+async function getAuthToken(): Promise<string> {
+  if (_cachedToken) return _cachedToken;
+  if (!DIRECTUS_URL || !DIRECTUS_EMAIL || !DIRECTUS_PASS) {
+    throw new Error('Credenciales Directus no configuradas');
+  }
+
+  const res = await fetch(`${DIRECTUS_URL}/auth/login`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ email: DIRECTUS_EMAIL, password: DIRECTUS_PASS }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Directus login: ${res.status} ${res.statusText} — ${body}`);
+  }
+
+  const json: { data: { access_token: string } } = await res.json();
+  _cachedToken = json.data.access_token;
+  return _cachedToken;
+}
+
+// ── Directus fetch helper ─────────────────────────────────────────
+
+async function dfetch<T>(
+  collection: string,
+  filter?: Record<string, unknown>,
+): Promise<T[]> {
+  if (!DIRECTUS_URL) throw new Error('No DIRECTUS_URL configured');
+
+  const token = await getAuthToken();
+
+  const url = new URL(`${DIRECTUS_URL}/items/${collection}`);
+  if (filter) url.searchParams.set('filter', JSON.stringify(filter));
+  url.searchParams.set('limit', '-1');
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    throw new Error(`Directus [${collection}]: ${res.status} ${res.statusText}`);
+  }
+
+  const json: { data: T[] } = await res.json();
+  return json.data;
+}
+
+// ── Mappers ───────────────────────────────────────────────────────
+
+function mapArtist(a: DArtist): Artist {
+  return {
+    id:        a.id,
+    name:      a.name ?? 'Artista',
+    slug:      slugify(a.name ?? a.id),
+    role:      'teacher',
+    image:     resolveImage(a.imageUrl, a.imagenB64),
+    website:   a.website   ?? undefined,
+    instagram: a.instagram ?? undefined,
+  };
+}
+
+function mapEvent(
+  e: DEvent,
+  festMap:        Map<string, DFestival>,
+  artistMap:      Map<string, Artist>,
+  eventArtistMap: Map<string, string[]>,
+): Event {
+  const fest      = e.festival_id ? festMap.get(e.festival_id) : undefined;
+  const styles    = parseStyles(e.styles);
+  const country   = e.country ?? fest?.country ?? '';
+  const city      = e.city    ?? fest?.city    ?? '';
+  const date      = e.dateFrom ?? (e.year ? `${e.year}-01-01` : undefined);
+  const artistIds = eventArtistMap.get(e.id) ?? [];
+  const artists   = artistIds
+    .map(id => artistMap.get(id))
+    .filter(Boolean) as Artist[];
+
+  return {
+    id:          e.id,
+    name:        fest?.title ?? `Festival ${e.year ?? ''}`,
+    date:        date ?? '2025-01-01',
+    city,
+    country,
+    continent:   getContinent(country),
+    style:       styles[0] ?? 'Swing',
+    type:        'festival',
+    description: fest?.description ?? undefined,
+    url:         fest?.website     ?? undefined,
+    image:       resolveImage(fest?.imageUrl ?? null, fest?.imagenB64 ?? null),
+    artists:     artists.length > 0 ? artists : undefined,
+    ticketUrl:   e.sourceUrl ?? undefined,
+  };
+}
+
+// ── Internal Directus fetchers ────────────────────────────────────
+
+async function fetchEventsFromDirectus(): Promise<Event[]> {
+  const [festivalsRaw, eventsRaw, artistsRaw] = await Promise.all([
+    dfetch<DFestival>('festivals', { application_id: { _eq: APP_ID } }),
+    dfetch<DEvent>('events',    { application_id: { _eq: APP_ID } }),
+    dfetch<DArtist>('artists',   { application_id: { _eq: APP_ID } }),
+  ]);
+
+  const festMap   = new Map(festivalsRaw.map(f => [f.id, f]));
+  const artistMap = new Map(artistsRaw.map(a => [a.id, mapArtist(a)]));
+
+  let eventArtistsRaw: DEventArtist[] = [];
+  if (eventsRaw.length > 0) {
+    eventArtistsRaw = await dfetch<DEventArtist>('event_artists', {
+      event_id: { _in: eventsRaw.map(e => e.id) },
+    });
+  }
+
+  const eventArtistMap = new Map<string, string[]>();
+  for (const ea of eventArtistsRaw) {
+    if (!eventArtistMap.has(ea.event_id)) eventArtistMap.set(ea.event_id, []);
+    eventArtistMap.get(ea.event_id)!.push(ea.artist_id);
+  }
+
+  return eventsRaw
+    .filter(e => e.dateFrom || e.year)
+    .map(e => mapEvent(e, festMap, artistMap, eventArtistMap))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function fetchArtistsFromDirectus(): Promise<Artist[]> {
+  const raw = await dfetch<DArtist>('artists', { application_id: { _eq: APP_ID } });
+  return raw.map(mapArtist);
+}
+
+// ── Public API ────────────────────────────────────────────────────
 
 export async function getEvents(): Promise<Event[]> {
-  if (USE_MOCK) return MOCK_EVENTS;
-  return MOCK_EVENTS; // fallback
+  if (USE_MOCK || !HAS_DIRECTUS) return MOCK_EVENTS;
+  try {
+    return await fetchEventsFromDirectus();
+  } catch (err) {
+    console.warn('[directus] getEvents falló, usando mock:', err);
+    return MOCK_EVENTS;
+  }
 }
 
 export async function getPosts(): Promise<Post[]> {
-  if (USE_MOCK) return MOCK_POSTS;
+  // No hay tabla de posts en Directus; se usan los mock.
   return MOCK_POSTS;
 }
 
 export async function getArtists(): Promise<Artist[]> {
-  if (USE_MOCK) return MOCK_ARTISTS;
-  return MOCK_ARTISTS;
+  if (USE_MOCK || !HAS_DIRECTUS) return MOCK_ARTISTS;
+  try {
+    return await fetchArtistsFromDirectus();
+  } catch (err) {
+    console.warn('[directus] getArtists falló, usando mock:', err);
+    return MOCK_ARTISTS;
+  }
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | undefined> {
-  const posts = await getPosts();
-  return posts.find(p => p.slug === slug);
+  return MOCK_POSTS.find(p => p.slug === slug);
 }
 
 export async function getEventBySlug(festival: string, year: string): Promise<Event | undefined> {
@@ -57,18 +327,14 @@ export async function getEventBySlug(festival: string, year: string): Promise<Ev
   return events.find(e =>
     e.type === 'festival' &&
     slugify(e.name) === festival &&
-    String(new Date(e.date).getFullYear()) === year
+    String(new Date(e.date).getFullYear()) === year,
   );
 }
 
 export async function getArtistBySlug(slug: string): Promise<Artist | undefined> {
-  // Busca en artistas independientes y también en los embebidos en eventos
-  const artists = await getArtists();
-  const found = artists.find(a => a.slug === slug);
-  if (found) return found;
-
-  // Fallback: buscar en artistas de eventos
-  const events = await getEvents();
+  const [artists, events] = await Promise.all([getArtists(), getEvents()]);
+  const direct = artists.find(a => a.slug === slug);
+  if (direct) return direct;
   for (const e of events) {
     const a = e.artists?.find(a => a.slug === slug);
     if (a) return a;
@@ -77,7 +343,7 @@ export async function getArtistBySlug(slug: string): Promise<Artist | undefined>
 }
 
 // ════════════════════════════════════════════════════════════════
-// MOCK DATA
+// MOCK DATA  (fallback cuando Directus no está disponible)
 // ════════════════════════════════════════════════════════════════
 
 const MOCK_ARTISTS: Artist[] = [
@@ -139,7 +405,6 @@ const MOCK_ARTISTS: Artist[] = [
   },
 ];
 
-// Referencias cortas para usar en MOCK_EVENTS
 const [skye, frida, mickey, kelly, todd, aurelie, cannonball, jstout, kompen] = MOCK_ARTISTS;
 
 const MOCK_EVENTS: Event[] = [

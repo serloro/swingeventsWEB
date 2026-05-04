@@ -113,6 +113,9 @@ const grouped = groupByMonth(events);
                   <span class="ev-day">{fmtDay(e.date)}</span>
                   <span class="ev-ms">{fmtMonthShort(e.date)}</span>
                 </div>
+                <div class="ev-thumb-slot">
+                  {e.image && <img src={e.image} alt="" class="ev-thumb" />}
+                </div>
                 <div class="ev-info">
                   <div
                     class="ev-name"
@@ -189,7 +192,10 @@ const grouped = groupByMonth(events);
   .results-info { font-family: Arial, sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 1.4rem; letter-spacing: .1em; }
   .results-info b { color: var(--gold); }
 
-  /* Month / rows */
+</style>
+
+<!-- Estilos de filas en global: el JS los recrea con innerHTML y no recibe el hash de Astro -->
+<style is:global>
   .month-block { margin-bottom: 2.2rem; }
   .month-hdr   {
     display: flex; align-items: center; gap: 14px;
@@ -199,11 +205,11 @@ const grouped = groupByMonth(events);
   .month-hdr span { font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
 
   .ev-row {
-    display: grid; grid-template-columns: 70px 1fr auto;
+    display: grid; grid-template-columns: 70px 44px 1fr auto;
     align-items: center; gap: 18px;
     padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.045);
     transition: background .18s, padding-left .18s;
-    position: relative; color: inherit;
+    position: relative; color: inherit; text-decoration: none;
   }
   .ev-row::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
@@ -217,17 +223,20 @@ const grouped = groupByMonth(events);
   .ev-date       { text-align: center; }
   .ev-day        { font-family: Georgia, serif; font-size: 1.9rem; color: var(--gold); line-height: 1; display: block; transition: color .2s; }
   .ev-ms         { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .ev-thumb-slot { display: flex; align-items: center; justify-content: center; }
+  .ev-thumb      { width: 42px; height: 42px; object-fit: cover; opacity: .65; border: 1px solid rgba(255,255,255,.08); transition: opacity .2s; }
+  .ev-row--festival:hover .ev-thumb { opacity: 1; }
   .ev-name       { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 5px; line-height: 1.3; transition: color .2s; }
   .ev-meta       { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); font-family: Arial, sans-serif; }
   .ev-meta span  { display: flex; align-items: center; gap: 5px; }
   .dot           { width: 3px; height: 3px; border-radius: 50%; background: var(--gold); display: inline-block; flex-shrink: 0; }
   .ev-aside      { display: flex; align-items: center; gap: 10px; }
   .ev-tag        { font-size: 9px; letter-spacing: .13em; text-transform: uppercase; padding: 3px 10px; border: 1px solid; font-family: Arial, sans-serif; white-space: nowrap; transition: opacity .2s; }
-  .ev-row--festival:hover .ev-tag        { opacity: .7; }
+  .ev-row--festival:hover .ev-tag  { opacity: .7; }
   .ev-arrow      { color: var(--muted); font-size: .85rem; transition: color .25s, transform .25s cubic-bezier(.34,1.56,.64,1); }
-  .ev-row--festival:hover .ev-arrow      { color: var(--gold); transform: translateX(6px); }
-  .ev-row--festival:hover .ev-day        { color: var(--gold-l); }
-  .ev-row--festival:hover .ev-name       { color: #FAF5E8; }
+  .ev-row--festival:hover .ev-arrow { color: var(--gold); transform: translateX(6px); }
+  .ev-row--festival:hover .ev-day   { color: var(--gold-l); }
+  .ev-row--festival:hover .ev-name  { color: #FAF5E8; }
   .no-results    { padding: 3rem 0; text-align: center; color: var(--muted); font-style: italic; }
 </style>
 
@@ -267,12 +276,14 @@ const grouped = groupByMonth(events);
     const nameAttr = isFest ? `data-astro-transition-name="festival-${e.id}"` : '';
     const arrow   = isFest ? '<span class="ev-arrow">→</span>' : '';
     const color   = TAG_COLORS[e.type] ?? '#888';
+    const thumb   = e.image ? `<img src="${e.image}" alt="" class="ev-thumb" />` : '';
 
     return `<${tag} class="${rowCls}" ${href}>
       <div class="ev-date">
         <span class="ev-day">${fmtDay(e.date)}</span>
         <span class="ev-ms">${fmtMs(e.date)}</span>
       </div>
+      <div class="ev-thumb-slot">${thumb}</div>
       <div class="ev-info">
         <div class="ev-name" ${nameAttr}>${e.name}</div>
         <div class="ev-meta">
