@@ -55,6 +55,8 @@ interface DFestival {
   description: string | null;
   website:     string | null;
   instagram:   string | null;
+  facebook:    string | null;
+  youtube:     string | null;
   imageUrl:    string | null;
   imagenB64:   string | null;
 }
@@ -248,7 +250,10 @@ function mapEvent(
     style:       styles[0] ?? 'Swing',
     type:        'festival',
     description: fest?.description ?? undefined,
-    url:         fest?.website     ?? undefined,
+    url:         fest?.website      ?? undefined,
+    instagram:   fest?.instagram   ?? undefined,
+    facebook:    fest?.facebook    ?? undefined,
+    youtube:     fest?.youtube     ?? undefined,
     image:       resolveImage(fest?.imageUrl ?? null, fest?.imagenB64 ?? null),
     artists:     artists.length > 0 ? artists : undefined,
     ticketUrl:   e.sourceUrl ?? undefined,

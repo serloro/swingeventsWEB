@@ -23,6 +23,9 @@ export interface Event {
   style:        string;
   type:         'festival' | 'social' | 'workshop' | 'competicion' | 'exchange';
   url?:         string;
+  instagram?:   string;
+  facebook?:    string;
+  youtube?:     string;
   image?:       string;        // UUID del asset Directus
   description?: string;
   artists?:     Artist[];

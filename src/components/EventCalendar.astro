@@ -239,6 +239,14 @@ const grouped = groupByMonth(events);
   .ev-row--festival:hover .ev-day   { color: var(--gold-l); }
   .ev-row--festival:hover .ev-name  { color: #FAF5E8; }
   .no-results    { padding: 3rem 0; text-align: center; color: var(--muted); font-style: italic; }
+
+  @media (max-width: 600px) {
+    .ev-row { grid-template-columns: 58px 38px 1fr auto; gap: 10px; padding: 12px 8px; }
+    .ev-tag { display: none; }
+    .ev-day { font-size: 1.5rem; }
+    .ev-thumb { width: 36px; height: 36px; }
+    .ev-meta  { gap: 6px; font-size: 10px; }
+  }
 </style>
 
 <script>

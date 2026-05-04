@@ -14,6 +14,7 @@
     <a href="#eventos">Eventos</a>
     <a href="#blog">Noticias</a>
     <a href="/sobre-nosotros">Sobre nosotros</a>
+    <a href="#eventos" class="nav-cta">Ver festivales</a>
   </div>
   <button class="nav-burger" id="nav-burger" aria-label="Abrir menú">
     <span></span><span></span><span></span>
@@ -21,6 +22,7 @@
 </nav>
 
 <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+  <a href="#eventos" class="nav-mobile-cta">Ver festivales →</a>
   <a href="#eventos">Eventos</a>
   <a href="#blog">Noticias</a>
   <a href="/sobre-nosotros">Sobre nosotros</a>
@@ -67,6 +69,14 @@
   .nav-links a:hover  { color: var(--cream); }
   .nav-links a:hover::after { width: 100%; }
 
+  .nav-cta {
+    background: var(--gold); color: var(--dark) !important;
+    padding: 7px 16px; font-weight: 700;
+    transition: background .2s !important;
+  }
+  .nav-cta::after { display: none !important; }
+  .nav-cta:hover { background: var(--gold-l); color: var(--dark) !important; }
+
   /* Hamburger button */
   .nav-burger {
     display: none; flex-direction: column; justify-content: center;
@@ -103,6 +113,11 @@
   }
   .nav-mobile a:last-child { border-bottom: none; }
   .nav-mobile a:hover { color: var(--cream); background: rgba(255,255,255,.03); }
+  .nav-mobile-cta {
+    color: var(--gold) !important; font-weight: 700;
+    border-bottom: 1px solid rgba(201,168,76,.2) !important;
+  }
+  .nav-mobile-cta:hover { color: var(--gold-l) !important; background: rgba(201,168,76,.05) !important; }
 
   @media (max-width: 720px) {
     .nav-links  { display: none; }
