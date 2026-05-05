@@ -17,7 +17,7 @@ interface Props { post: Post }
 const { post } = Astro.props;
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 // Convierte el contenido en HTML con párrafos y **negrita**
@@ -41,11 +41,11 @@ function renderContent(text: string): string {
 
     <!-- Hero -->
     <header class="post-hero reveal">
-      <a href="/#blog" class="back-link">← Volver a noticias</a>
+      <a href="/#blog" class="back-link">← Back to news</a>
 
       <div class="post-cat-wrap">
         <span class="post-cat">{post.category}</span>
-        {post.readTime && <span class="post-read">{post.readTime} min de lectura</span>}
+        {post.readTime && <span class="post-read">{post.readTime} min read</span>}
       </div>
 
       <div class="post-icon-bg">{post.icon ?? '♪'}</div>
@@ -72,12 +72,12 @@ function renderContent(text: string): string {
     {post.content ? (
       <div class="post-content reveal" set:html={renderContent(post.content)} />
     ) : (
-      <p class="post-no-content">Contenido completo próximamente.</p>
+      <p class="post-no-content">Full content coming soon.</p>
     )}
 
     <!-- Pie de artículo -->
     <footer class="post-footer reveal">
-      <a href="/#blog" class="btn-back">← Más artículos</a>
+      <a href="/#blog" class="btn-back">← More articles</a>
     </footer>
 
   </article>

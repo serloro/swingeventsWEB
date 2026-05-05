@@ -14,7 +14,10 @@
       "Bash(curl -s http://localhost:4321/artista/skye-humphries/)",
       "Bash(curl -s http://localhost:4321/blog/noticias/origen-lindy-hop/)",
       "Bash(curl -s http://localhost:4321/)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npx astro *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4322/pagina-que-no-existe)",
+      "Bash(curl -s http://localhost:4322/pagina-que-no-existe)"
     ]
   }
 }

@@ -21,12 +21,12 @@ export async function getStaticPaths() {
 interface Props { event: Event }
 const { event } = Astro.props;
 
-const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio',
-                     'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
 
 function fmtFullDate(iso: string) {
   const d = new Date(iso);
-  return `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} de ${d.getFullYear()}`;
+  return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
 const teachers = event.artists?.filter(a => a.role === 'teacher') ?? [];
@@ -59,7 +59,7 @@ const TAG_COLORS: Record<string, string> = {
       <div class="fhero-overlay"></div>
       <div class="fhero-bg-glow"></div>
 
-      <a href="/#eventos" class="back-link reveal">← Volver al calendario</a>
+      <a href="/#eventos" class="back-link reveal">← Back to calendar</a>
 
       <div class="fhero-badges reveal" style="--rd:.05s">
         <span class="badge-type" style={`color:${TAG_COLORS[event.type]};border-color:${TAG_COLORS[event.type]}`}>
@@ -90,12 +90,12 @@ const TAG_COLORS: Record<string, string> = {
       <div class="fhero-actions reveal" style="--rd:.25s">
         {event.ticketUrl && (
           <a href={event.ticketUrl} target="_blank" rel="noopener" class="btn-tickets">
-            Entradas →
+            Tickets →
           </a>
         )}
         {event.url && (
           <a href={event.url} target="_blank" rel="noopener" class="btn-web">
-            Web oficial
+            Official website
           </a>
         )}
       </div>
@@ -105,7 +105,7 @@ const TAG_COLORS: Record<string, string> = {
     {event.description && (
       <section class="fdesc">
         <div class="fdesc-inner reveal">
-          <div class="sec-eyebrow">Sobre el festival</div>
+          <div class="sec-eyebrow">About the festival</div>
           <p class="fdesc-text">{event.description}</p>
         </div>
       </section>
@@ -117,14 +117,14 @@ const TAG_COLORS: Record<string, string> = {
         <div class="fartists-inner">
 
           <div class="sec-header reveal">
-            <div class="sec-eyebrow">Cartel</div>
-            <h2 class="sec-title">Artistas</h2>
+            <div class="sec-eyebrow">Lineup</div>
+            <h2 class="sec-title">Artists</h2>
           </div>
 
           {teachers.length > 0 && (
             <div class="artists-group reveal" style="--rd:.1s">
               <h3 class="artists-group-title">
-                <span class="artists-group-icon">◈</span> Profesores
+                <span class="artists-group-icon">◈</span> Teachers
               </h3>
               <div class="artists-grid">
                 {teachers.map((artist, i) => (
@@ -165,7 +165,7 @@ const TAG_COLORS: Record<string, string> = {
           {bands.length > 0 && (
             <div class="artists-group reveal" style={`--rd:${0.1 + teachers.length * 0.05}s`}>
               <h3 class="artists-group-title">
-                <span class="artists-group-icon">♪</span> Bandas
+                <span class="artists-group-icon">♪</span> Bands
               </h3>
               <div class="artists-grid">
                 {bands.map((artist, i) => (
@@ -212,22 +212,22 @@ const TAG_COLORS: Record<string, string> = {
       <div class="finfo-inner reveal">
         <div class="finfo-row">
           <div class="finfo-item">
-            <span class="finfo-label">Estilo</span>
+            <span class="finfo-label">Style</span>
             <span class="finfo-val">{event.style}</span>
           </div>
           <div class="finfo-item">
-            <span class="finfo-label">Fecha</span>
+            <span class="finfo-label">Date</span>
             <span class="finfo-val">{fmtFullDate(event.date)}</span>
           </div>
           <div class="finfo-item">
-            <span class="finfo-label">Lugar</span>
+            <span class="finfo-label">Venue</span>
             <span class="finfo-val">{event.city}, {event.country}</span>
           </div>
           {event.ticketUrl && (
             <div class="finfo-item">
-              <span class="finfo-label">Entradas</span>
+              <span class="finfo-label">Tickets</span>
               <a href={event.ticketUrl} target="_blank" rel="noopener" class="finfo-link">
-                Comprar entradas →
+                Buy tickets →
               </a>
             </div>
           )}
@@ -239,7 +239,7 @@ const TAG_COLORS: Record<string, string> = {
     {(event.instagram || event.facebook || event.youtube || event.url) && (
       <section class="fsocial">
         <div class="fsocial-inner reveal">
-          <div class="sec-eyebrow">Síguenos</div>
+          <div class="sec-eyebrow">Follow us</div>
           <div class="fsocial-links">
             {event.instagram && (
               <a
@@ -255,7 +255,7 @@ const TAG_COLORS: Record<string, string> = {
                 </span>
                 <div>
                   <span class="fsocial-label">Instagram</span>
-                  <span class="fsocial-val">{event.instagram.startsWith('http') ? 'Ver perfil' : event.instagram}</span>
+                  <span class="fsocial-val">{event.instagram.startsWith('http') ? 'View profile' : event.instagram}</span>
                 </div>
                 <span class="fsocial-arrow">→</span>
               </a>
@@ -273,7 +273,7 @@ const TAG_COLORS: Record<string, string> = {
                 </span>
                 <div>
                   <span class="fsocial-label">Facebook</span>
-                  <span class="fsocial-val">{event.facebook.startsWith('http') ? 'Ver página' : event.facebook}</span>
+                  <span class="fsocial-val">{event.facebook.startsWith('http') ? 'View page' : event.facebook}</span>
                 </div>
                 <span class="fsocial-arrow">→</span>
               </a>
@@ -292,7 +292,7 @@ const TAG_COLORS: Record<string, string> = {
                 </span>
                 <div>
                   <span class="fsocial-label">YouTube</span>
-                  <span class="fsocial-val">{event.youtube.startsWith('http') ? 'Ver canal' : event.youtube}</span>
+                  <span class="fsocial-val">{event.youtube.startsWith('http') ? 'View channel' : event.youtube}</span>
                 </div>
                 <span class="fsocial-arrow">→</span>
               </a>
@@ -307,8 +307,8 @@ const TAG_COLORS: Record<string, string> = {
                   </svg>
                 </span>
                 <div>
-                  <span class="fsocial-label">Web oficial</span>
-                  <span class="fsocial-val">Visitar →</span>
+                  <span class="fsocial-label">Official website</span>
+                  <span class="fsocial-val">Visit →</span>
                 </div>
                 <span class="fsocial-arrow">→</span>
               </a>
@@ -618,6 +618,11 @@ const TAG_COLORS: Record<string, string> = {
     transition: color .25s, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
   .fsocial-item:hover .fsocial-arrow { color: var(--gold); transform: translateX(4px); }
+
+  @media (orientation: landscape) and (max-height: 540px) {
+    .fhero { min-height: 540px; }
+    .fhero-img { object-position: center 30%; }
+  }
 
   @media (max-width: 600px) {
     .fhero { padding: 50px 5vw 50px; min-height: 55vh; }

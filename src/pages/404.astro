@@ -1,0 +1,239 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav        from '../components/Nav.astro';
+import Footer     from '../components/Footer.astro';
+---
+
+<BaseLayout
+  title="Page not found — Swing Festivals"
+  description="Looks like this dance step doesn't exist."
+>
+  <Nav />
+
+  <main class="stage">
+
+    <!-- Animated dancers -->
+    <div class="dancers" aria-hidden="true">
+      <svg viewBox="0 0 220 200" xmlns="http://www.w3.org/2000/svg" class="couple">
+        <!-- Left dancer -->
+        <g class="dancer-left">
+          <circle cx="60" cy="30" r="12" fill="none" stroke="var(--gold)" stroke-width="2.5"/>
+          <line x1="60" y1="42" x2="60" y2="95"  stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="60" x2="35" y2="80"  stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="60" x2="85" y2="75"  stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="42" y2="130" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="60" y1="95" x2="74" y2="135" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- Connected hands -->
+        <line x1="85" y1="75" x2="135" y2="75"
+              stroke="var(--gold-l)" stroke-width="1.5" stroke-dasharray="4 3" opacity=".5"/>
+
+        <!-- Right dancer -->
+        <g class="dancer-right">
+          <circle cx="160" cy="30" r="12" fill="none" stroke="var(--teal-l)" stroke-width="2.5"/>
+          <line x1="160" y1="42" x2="160" y2="95"  stroke="var(--teal-l)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="160" y1="60" x2="135" y2="75"  stroke="var(--teal-l)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="160" y1="60" x2="185" y2="80"  stroke="var(--teal-l)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="160" y1="95" x2="145" y2="135" stroke="var(--teal-l)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="160" y1="95" x2="176" y2="130" stroke="var(--teal-l)" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- Floating music notes -->
+        <text x="20"  y="60"  class="note n1">♪</text>
+        <text x="190" y="50"  class="note n2">♫</text>
+        <text x="100" y="20"  class="note n3">♩</text>
+      </svg>
+    </div>
+
+    <!-- Error code -->
+    <p class="error-label">Error</p>
+    <h1 class="error-code">404</h1>
+    <p class="error-title">Oops! Wrong step, wrong floor</p>
+    <p class="error-sub">
+      Looks like your swing took you somewhere that doesn't exist.<br>
+      Head back to the main floor and find your rhythm.
+    </p>
+
+    <div class="actions">
+      <a href="/" class="btn-primary">← Back to the floor</a>
+    </div>
+
+    <!-- Background decoration -->
+    <div class="bg-glow" aria-hidden="true"></div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  .stage {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 5vw 60px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Glow de fondo ─────────────────────────────── */
+  .bg-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 40%, rgba(201,168,76,.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 30% 70%, rgba(58,154,134,.05) 0%, transparent 60%);
+  }
+
+  /* ── Bailarines SVG ────────────────────────────── */
+  .dancers {
+    margin-bottom: 36px;
+    position: relative;
+    z-index: 1;
+  }
+  .couple {
+    width: 180px;
+    height: auto;
+    filter: drop-shadow(0 0 18px rgba(201,168,76,.3));
+  }
+
+  .dancer-left  { transform-origin: 60px 95px;  animation: swing-l 2.4s ease-in-out infinite; }
+  .dancer-right { transform-origin: 160px 95px; animation: swing-r 2.4s ease-in-out infinite; }
+
+  @keyframes swing-l {
+    0%, 100% { transform: rotate(-8deg); }
+    50%       { transform: rotate(10deg); }
+  }
+  @keyframes swing-r {
+    0%, 100% { transform: rotate(8deg);  }
+    50%       { transform: rotate(-10deg); }
+  }
+
+  .note {
+    font-size: 18px;
+    fill: var(--gold);
+    opacity: .55;
+  }
+  .n1 { animation: float-note 3.1s ease-in-out infinite; }
+  .n2 { animation: float-note 2.7s ease-in-out infinite 0.5s; }
+  .n3 { animation: float-note 3.5s ease-in-out infinite 1s; }
+
+  @keyframes float-note {
+    0%, 100% { transform: translateY(0);   opacity: .55; }
+    50%       { transform: translateY(-8px); opacity: .9; }
+  }
+
+  /* ── Texto ─────────────────────────────────────── */
+  .error-label {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .error-code {
+    font-family: Georgia, serif;
+    font-size: clamp(6rem, 18vw, 10rem);
+    font-weight: 400;
+    color: var(--gold);
+    line-height: 1;
+    letter-spacing: -.02em;
+    text-shadow:
+      0 0 40px rgba(201,168,76,.35),
+      0 0 80px rgba(201,168,76,.15);
+    position: relative;
+    z-index: 1;
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 40px rgba(201,168,76,.35), 0 0 80px rgba(201,168,76,.15); }
+    50%       { text-shadow: 0 0 60px rgba(201,168,76,.55), 0 0 120px rgba(201,168,76,.25); }
+  }
+
+  .error-title {
+    font-family: Georgia, serif;
+    font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+    color: var(--cream);
+    margin-top: 12px;
+    margin-bottom: 16px;
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+  }
+
+  .error-sub {
+    font-family: Arial, sans-serif;
+    font-size: .95rem;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 440px;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Botones ───────────────────────────────────── */
+  .actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    transition: background .2s, color .2s, transform .15s;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--dark);
+    font-weight: 700;
+  }
+  .btn-primary:hover {
+    background: var(--gold-l);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    border: 1px solid rgba(201,168,76,.4);
+    color: var(--gold);
+  }
+  .btn-secondary:hover {
+    background: rgba(201,168,76,.08);
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  /* ── Separador decorativo ──────────────────────── */
+  .error-code::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0 auto 16px;
+    opacity: .5;
+  }
+
+  @media (max-width: 480px) {
+    .actions { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { width: 100%; max-width: 280px; text-align: center; }
+  }
+</style>

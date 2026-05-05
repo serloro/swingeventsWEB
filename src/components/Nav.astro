@@ -7,25 +7,24 @@
     <div class="nav-logo-icon">♪</div>
     <div>
       <div class="nav-logo-name">Swing <em>Festivals</em></div>
-      <span class="nav-logo-sub">Descubre los mejores festivales</span>
+      <span class="nav-logo-sub">Discover the best festivals</span>
     </div>
   </a>
   <div class="nav-links">
-    <a href="#eventos">Eventos</a>
-    <a href="#blog">Noticias</a>
-    <a href="/sobre-nosotros">Sobre nosotros</a>
-    <a href="#eventos" class="nav-cta">Ver festivales</a>
+    <a href="#eventos">Events</a>
+    <a href="#blog">News</a>
+    <a href="/about">About</a>
   </div>
-  <button class="nav-burger" id="nav-burger" aria-label="Abrir menú">
+  <button class="nav-burger" id="nav-burger" aria-label="Open menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
 <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
-  <a href="#eventos" class="nav-mobile-cta">Ver festivales →</a>
-  <a href="#eventos">Eventos</a>
-  <a href="#blog">Noticias</a>
-  <a href="/sobre-nosotros">Sobre nosotros</a>
+  <a href="#eventos" class="nav-mobile-cta">Browse festivals →</a>
+  <a href="#eventos">Events</a>
+  <a href="#blog">News</a>
+  <a href="/about">About</a>
 </div>
 
 <style>
@@ -136,7 +135,7 @@
   burger.addEventListener('click', () => {
     const open = burger.classList.toggle('open');
     mobileMenu.classList.toggle('open', open);
-    burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     mobileMenu.setAttribute('aria-hidden', String(!open));
   });
 
@@ -144,7 +143,7 @@
     a.addEventListener('click', () => {
       burger.classList.remove('open');
       mobileMenu.classList.remove('open');
-      burger.setAttribute('aria-label', 'Abrir menú');
+      burger.setAttribute('aria-label', 'Open menu');
       mobileMenu.setAttribute('aria-hidden', 'true');
     });
   });

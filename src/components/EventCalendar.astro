@@ -12,8 +12,8 @@ const types      = [...new Set(events.map(e => e.type))].sort();
 
 const eventsJson = JSON.stringify(events);
 
-const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
 
 function groupByMonth(evs: Event[]) {
   const grouped: Record<string, Event[]> = {};
@@ -44,48 +44,48 @@ const grouped = groupByMonth(events);
   <div class="inner">
 
     <div class="sec-header reveal">
-      <div class="sec-eyebrow">Próximas citas</div>
-      <h2 class="sec-title">Calendario de eventos</h2>
-      <p class="sec-sub">Todos los festivales y eventos swing del mundo, agrupados por mes</p>
+      <div class="sec-eyebrow">Upcoming events</div>
+      <h2 class="sec-title">Event calendar</h2>
+      <p class="sec-sub">All swing festivals and events worldwide, grouped by month</p>
     </div>
 
     <!-- Filter bar -->
     <div class="filter-bar reveal" id="filter-bar" style="--rd:.15s">
       <div class="fg wide">
-        <span class="fl">Buscar</span>
-        <input class="fi" id="f-search" type="text" placeholder="Nombre del evento o ciudad…" />
+        <span class="fl">Search</span>
+        <input class="fi" id="f-search" type="text" placeholder="Event name or city…" />
       </div>
       <div class="fg">
-        <span class="fl">Estilo</span>
+        <span class="fl">Style</span>
         <select class="fs" id="f-style">
-          <option value="">Todos</option>
+          <option value="">All</option>
           {styles.map(s => <option value={s}>{s}</option>)}
         </select>
       </div>
       <div class="fg">
-        <span class="fl">Continente</span>
+        <span class="fl">Continent</span>
         <select class="fs" id="f-cont">
-          <option value="">Todos</option>
+          <option value="">All</option>
           {continents.map(c => <option value={c}>{c}</option>)}
         </select>
       </div>
       <div class="fg">
-        <span class="fl">País</span>
+        <span class="fl">Country</span>
         <select class="fs" id="f-country">
-          <option value="">Todos</option>
+          <option value="">All</option>
           {countries.map(c => <option value={c}>{c}</option>)}
         </select>
       </div>
       <div class="fg">
-        <span class="fl">Tipo</span>
+        <span class="fl">Type</span>
         <select class="fs" id="f-type">
-          <option value="">Todos</option>
+          <option value="">All</option>
           {types.map(t => <option value={t}>{t}</option>)}
         </select>
       </div>
       <div class="factions">
-        <button class="fa" id="btn-filter">Filtrar</button>
-        <button class="fc" id="btn-clear">✕ Limpiar</button>
+        <button class="fa" id="btn-filter">Filter</button>
+        <button class="fc" id="btn-clear">✕ Clear</button>
       </div>
     </div>
 
@@ -97,7 +97,7 @@ const grouped = groupByMonth(events);
         <div class="month-block">
           <div class="month-hdr">
             {month}
-            <span>{evs.length} evento{evs.length !== 1 ? 's' : ''}</span>
+            <span>{evs.length} event{evs.length !== 1 ? 's' : ''}</span>
           </div>
           {evs.map(e => {
             const isFestival = e.type === 'festival';
@@ -250,8 +250,8 @@ const grouped = groupByMonth(events);
 </style>
 
 <script>
-  const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                       'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const MONTH_NAMES = ['January','February','March','April','May','June',
+                       'July','August','September','October','November','December'];
   const TAG_COLORS: Record<string, string> = {
     festival:'#9A9A18', social:'#3A9A86',
     workshop:'#9A2090', competicion:'#9A2020', exchange:'#209A7A',
@@ -312,17 +312,17 @@ const grouped = groupByMonth(events);
     const out  = document.getElementById('events-out')!;
     const info = document.getElementById('results-info')!;
     if (!evs.length) {
-      out.innerHTML = '<div class="no-results">No se encontraron eventos con los filtros seleccionados.</div>';
+      out.innerHTML = '<div class="no-results">No events found matching the selected filters.</div>';
       info.innerHTML = ''; return;
     }
     const sorted = [...evs].sort((a, b) => a.date.localeCompare(b.date));
     const byMonth: Record<string, any[]> = {};
     sorted.forEach(e => { (byMonth[monthKey(e.date)] ??= []).push(e); });
     const months = Object.keys(byMonth);
-    info.innerHTML = `Mostrando <b>${evs.length}</b> evento${evs.length !== 1 ? 's' : ''} en <b>${months.length}</b> mes${months.length !== 1 ? 'es' : ''}`;
+    info.innerHTML = `Showing <b>${evs.length}</b> event${evs.length !== 1 ? 's' : ''} across <b>${months.length}</b> month${months.length !== 1 ? 's' : ''}`;
     out.innerHTML = months.map((m, i) => `
       <div class="month-block">
-        <div class="month-hdr">${m}<span>${byMonth[m].length} evento${byMonth[m].length !== 1 ? 's' : ''}</span></div>
+        <div class="month-hdr">${m}<span>${byMonth[m].length} event${byMonth[m].length !== 1 ? 's' : ''}</span></div>
         ${byMonth[m].map(eventRow).join('')}
       </div>`).join('');
     document.dispatchEvent(new CustomEvent('events-rendered'));

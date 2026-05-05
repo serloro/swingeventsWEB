@@ -39,13 +39,13 @@ function initials(name: string): string {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  teacher: 'Profesor / Profesora',
-  band:    'Banda / Orquesta',
+  teacher: 'Teacher',
+  band:    'Band / Orchestra',
   dj:      'DJ',
 };
 
-const MONTH_NAMES = ['Ene','Feb','Mar','Abr','May','Jun',
-                     'Jul','Ago','Sep','Oct','Nov','Dic'];
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun',
+                     'Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -55,7 +55,7 @@ function fmtDate(iso: string) {
 
 <BaseLayout
   title={`${artist.name} — Swing Festivals`}
-  description={artist.bio?.slice(0, 160) ?? `Perfil de ${artist.name} en Swing Festivals.`}
+  description={artist.bio?.slice(0, 160) ?? `Profile of ${artist.name} on Swing Festivals.`}
 >
   <Nav />
 
@@ -65,7 +65,7 @@ function fmtDate(iso: string) {
     <header class="ahero">
       <div class="ahero-glow"></div>
 
-      <a href="javascript:history.back()" class="back-link reveal">← Volver</a>
+      <a href="javascript:history.back()" class="back-link reveal">← Back</a>
 
       <div class="ahero-layout reveal" style="--rd:.08s">
         <div class={`ahero-avatar ahero-avatar--${artist.role}`}>
@@ -103,7 +103,7 @@ function fmtDate(iso: string) {
     {artist.bio && (
       <section class="abio">
         <div class="abio-inner reveal">
-          <div class="sec-eyebrow">Biografía</div>
+          <div class="sec-eyebrow">Biography</div>
           <p class="abio-text">{artist.bio}</p>
         </div>
       </section>
@@ -114,9 +114,9 @@ function fmtDate(iso: string) {
       <section class="afests">
         <div class="afests-inner">
           <div class="sec-header reveal">
-            <div class="sec-eyebrow">Próximas citas</div>
-            <h2 class="sec-title">Festivales</h2>
-            <p class="sec-sub">Donde puedes ver a {artist.name} este año</p>
+            <div class="sec-eyebrow">Upcoming dates</div>
+            <h2 class="sec-title">Festivals</h2>
+            <p class="sec-sub">Where you can see {artist.name} this year</p>
           </div>
 
           <div class="afests-list">
@@ -146,7 +146,7 @@ function fmtDate(iso: string) {
     {(artist.instagram || artist.website) && (
       <section class="asocial">
         <div class="asocial-inner reveal">
-          <div class="sec-eyebrow">Contacto</div>
+          <div class="sec-eyebrow">Contact</div>
           <div class="social-links">
             {artist.instagram && (
               <a
@@ -162,7 +162,7 @@ function fmtDate(iso: string) {
                 </span>
                 <div>
                   <span class="social-label">Instagram</span>
-                  <span class="social-val">{artist.instagram.startsWith('http') ? 'Ver perfil' : artist.instagram}</span>
+                  <span class="social-val">{artist.instagram.startsWith('http') ? 'View profile' : artist.instagram}</span>
                 </div>
                 <span class="social-arrow">→</span>
               </a>
@@ -177,8 +177,8 @@ function fmtDate(iso: string) {
                   </svg>
                 </span>
                 <div>
-                  <span class="social-label">Web oficial</span>
-                  <span class="social-val">Visitar</span>
+                  <span class="social-label">Official website</span>
+                  <span class="social-val">Visit</span>
                 </div>
                 <span class="social-arrow">→</span>
               </a>

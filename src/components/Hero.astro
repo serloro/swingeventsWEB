@@ -30,24 +30,24 @@ const layers = [
 
   <!-- Content -->
   <div class="hero-content">
-    <div class="hero-eyebrow">El directorio mundial de swing</div>
+    <div class="hero-eyebrow">The world swing directory</div>
     <h1 class="hero-title">
       Swing <em>Festivals</em>
-      <small>Descubre experiencias musicales inolvidables</small>
+      <small>Discover unforgettable musical experiences</small>
     </h1>
     <p class="hero-desc">
-      El directorio de referencia para encontrar festivales de swing,
-      Lindy Hop, Balboa y jazz en todo el mundo. Filtra por estilo, país y fecha.
+      The go-to directory to find swing, Lindy Hop, Balboa and jazz
+      festivals worldwide. Filter by style, country and date.
     </p>
     <div class="hero-btns">
-      <a href="#eventos" class="btn-p">Ver calendario</a>
-      <a href="#blog"    class="btn-o">Últimas noticias</a>
+      <a href="#eventos" class="btn-p">View calendar</a>
+      <a href="#blog"    class="btn-o">Latest news</a>
     </div>
   </div>
 
   <!-- Stats bar -->
   <div class="hero-stats">
-    {[['240+','Festivales'],['38','Países'],['9','Estilos'],['2025','Temporada']].map(([n,l]) => (
+    {[['240+','Festivals'],['38','Countries'],['9','Styles'],['2025','Season']].map(([n,l]) => (
       <div class="hero-stat">
         <span class="stat-n">{n}</span>
         <span class="stat-l">{l}</span>
@@ -56,7 +56,7 @@ const layers = [
   </div>
 
   <div class="scroll-hint">
-    <span>Explorar</span>
+    <span>Explore</span>
     <div class="scroll-arrow"></div>
   </div>
 
@@ -69,8 +69,8 @@ const layers = [
     isolation: isolate;
   }
   .plx {
-    position: absolute; inset: -6%;
-    width: 112%; height: 112%;
+    position: absolute; inset: -70px;
+    width: calc(100% + 140px); height: calc(100% + 140px);
     will-change: transform;
   }
   .plx-img-wrap { pointer-events: none; }
@@ -79,6 +79,16 @@ const layers = [
     width: 100%; height: 100%;
     object-fit: cover; object-position: center bottom;
     display: block; max-width: none;
+  }
+
+  /* On ultrawide screens, cover zooms the layers too much.
+     Scale by height instead so the full composition stays visible;
+     the gradient background fills any uncovered sides. */
+  @media (min-aspect-ratio: 2/1) {
+    .layer-img {
+      object-fit: contain;
+      object-position: center bottom;
+    }
   }
 
   .hero-fade {
@@ -189,7 +199,13 @@ const layers = [
     .stat-n     { font-size: 1.15rem; }
     .stat-l     { font-size: 7.5px; letter-spacing: .12em; }
     .scroll-hint { display: none; }
-    /* Las imágenes usan object-fit:cover → se adaptan solas a portrait y landscape */
+  }
+
+  @media (orientation: landscape) and (max-height: 540px) {
+    #hero { min-height: 540px; }
+    .layer-img { object-position: center 35%; }
+    .hero-content { bottom: max(6%, 120px); }
+    .hero-stats { display: none; }
   }
 
   @media (max-width: 480px) {
