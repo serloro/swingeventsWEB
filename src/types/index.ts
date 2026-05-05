@@ -13,10 +13,16 @@ export interface Artist {
   instagram?:   string;
 }
 
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 export interface Event {
   id:           string;
   name:         string;
   date:         string;        // ISO 8601: "2025-05-03"
+  dateTo?:      string;        // ISO 8601: fecha de fin
   city:         string;
   country:      string;
   continent:    string;
@@ -30,6 +36,7 @@ export interface Event {
   description?: string;
   artists?:     Artist[];
   ticketUrl?:   string;
+  map?:         LatLng;        // Coordenadas del venue
 }
 
 export interface Post {

@@ -29,6 +29,16 @@ function fmtFullDate(iso: string) {
   return `${MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+function fmtDateRange(from: string, to?: string) {
+  const a = new Date(from);
+  if (!to) return fmtFullDate(from);
+  const b = new Date(to);
+  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
+    return `${MONTH_NAMES[a.getMonth()]} ${a.getDate()}–${b.getDate()}, ${a.getFullYear()}`;
+  }
+  return `${MONTH_NAMES[a.getMonth()]} ${a.getDate()} – ${MONTH_NAMES[b.getMonth()]} ${b.getDate()}, ${b.getFullYear()}`;
+}
+
 const teachers = event.artists?.filter(a => a.role === 'teacher') ?? [];
 const bands    = event.artists?.filter(a => a.role === 'band' || a.role === 'dj') ?? [];
 
@@ -73,9 +83,19 @@ const TAG_COLORS: Record<string, string> = {
       </h1>
 
       <div class="fhero-date reveal" style="--rd:.15s">
-        <span class="fhero-date-num">{new Date(event.date).getDate()}</span>
+        <span class="fhero-date-num">
+          {new Date(event.date).getDate()}
+          {event.dateTo && new Date(event.dateTo).getDate() !== new Date(event.date).getDate() && (
+            <>–{new Date(event.dateTo).getDate()}</>
+          )}
+        </span>
         <div class="fhero-date-info">
-          <span class="fhero-month">{MONTH_NAMES[new Date(event.date).getMonth()].toUpperCase()}</span>
+          <span class="fhero-month">
+            {MONTH_NAMES[new Date(event.date).getMonth()].toUpperCase()}
+            {event.dateTo && new Date(event.dateTo).getMonth() !== new Date(event.date).getMonth() && (
+              <> – {MONTH_NAMES[new Date(event.dateTo).getMonth()].toUpperCase()}</>
+            )}
+          </span>
           <span class="fhero-year">{new Date(event.date).getFullYear()}</span>
         </div>
       </div>
@@ -217,7 +237,7 @@ const TAG_COLORS: Record<string, string> = {
           </div>
           <div class="finfo-item">
             <span class="finfo-label">Date</span>
-            <span class="finfo-val">{fmtFullDate(event.date)}</span>
+            <span class="finfo-val">{fmtDateRange(event.date, event.dateTo)}</span>
           </div>
           <div class="finfo-item">
             <span class="finfo-label">Venue</span>
@@ -314,6 +334,33 @@ const TAG_COLORS: Record<string, string> = {
               </a>
             )}
           </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Mapa del venue -->
+    {event.map && (
+      <section class="fmap">
+        <div class="fmap-inner reveal">
+          <div class="sec-eyebrow">Venue</div>
+          <h2 class="sec-title fmap-title">Location</h2>
+          <div class="fmap-wrap">
+            <iframe
+              title={`Map of ${event.name}`}
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${event.map.lng - 0.02},${event.map.lat - 0.014},${event.map.lng + 0.02},${event.map.lat + 0.014}&layer=mapnik&marker=${event.map.lat},${event.map.lng}`}
+              loading="lazy"
+              referrerpolicy="no-referrer"
+              class="fmap-iframe"
+            ></iframe>
+          </div>
+          <a
+            href={`https://www.openstreetmap.org/?mlat=${event.map.lat}&mlon=${event.map.lng}#map=15/${event.map.lat}/${event.map.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="fmap-link"
+          >
+            Open in OpenStreetMap →
+          </a>
         </div>
       </section>
     )}
@@ -618,6 +665,30 @@ const TAG_COLORS: Record<string, string> = {
     transition: color .25s, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
   .fsocial-item:hover .fsocial-arrow { color: var(--gold); transform: translateX(4px); }
+
+  /* ── Mapa ── */
+  .fmap { background: var(--dark2); padding: 56px 5vw; border-top: 1px solid rgba(255,255,255,.04); }
+  .fmap-inner { max-width: 1200px; margin: 0 auto; }
+  .fmap-title { margin-bottom: 1.4rem; }
+  .fmap-wrap {
+    width: 100%; border: 1px solid rgba(255,255,255,.07);
+    overflow: hidden; position: relative;
+  }
+  .fmap-iframe {
+    display: block; width: 100%; height: 520px;
+    border: none; filter: grayscale(30%) contrast(1.05);
+  }
+  .fmap-link {
+    display: inline-block; margin-top: 12px;
+    font-family: Arial, sans-serif; font-size: 10px;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); transition: color .2s;
+  }
+  .fmap-link:hover { color: var(--gold-l); }
+
+  @media (max-width: 600px) {
+    .fmap-iframe { height: 340px; }
+  }
 
   @media (orientation: landscape) and (max-height: 540px) {
     .fhero { min-height: 540px; }

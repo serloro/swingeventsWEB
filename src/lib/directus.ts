@@ -9,7 +9,7 @@
  * se usa el dataset mock de abajo como fallback.
  */
 
-import type { Event, Post, Artist } from '../types/index.js';
+import type { Event, Post, Artist, LatLng } from '../types/index.js';
 
 // ── Config ───────────────────────────────────────────────────────
 const RAW_URL          = import.meta.env.DIRECTUS_URL      as string | undefined;
@@ -59,6 +59,7 @@ interface DFestival {
   youtube:     string | null;
   imageUrl:    string | null;
   imagenB64:   string | null;
+  map:         { type: string; coordinates: [number, number] } | { lat: number; lng: number } | null;
 }
 
 interface DEvent {
@@ -86,6 +87,20 @@ interface DEventArtist {
   id:        string;
   event_id:  string;
   artist_id: string;
+}
+
+// ── Map resolver: acepta GeoJSON Point o {lat,lng} ───────────────
+
+function resolveMap(
+  raw: DFestival['map'],
+): LatLng | undefined {
+  if (!raw) return undefined;
+  if ('coordinates' in raw) {
+    const [lng, lat] = raw.coordinates;
+    return { lat, lng };
+  }
+  if ('lat' in raw && 'lng' in raw) return raw;
+  return undefined;
 }
 
 // ── Image resolver: URL tiene prioridad sobre base64 ─────────────
@@ -257,6 +272,8 @@ function mapEvent(
     image:       resolveImage(fest?.imageUrl ?? null, fest?.imagenB64 ?? null),
     artists:     artists.length > 0 ? artists : undefined,
     ticketUrl:   e.sourceUrl ?? undefined,
+    map:         resolveMap(fest?.map ?? null),
+    dateTo:      e.dateTo ?? undefined,
   };
 }
 
