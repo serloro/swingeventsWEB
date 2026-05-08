@@ -167,16 +167,16 @@ const grouped = groupByMonth(events);
   .filter-bar {
     display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
     margin-bottom: 2.4rem; padding: 18px 20px;
-    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+    background: var(--surface); border: 1px solid var(--border-sm);
   }
   .fg        { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 130px; }
   .fg.wide   { flex: 2; min-width: 180px; }
   .fl        { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .26em; text-transform: uppercase; color: var(--muted); }
-  .fi        { background: #1A1510; border: 1px solid rgba(255,255,255,.1); color: var(--cream2); padding: 8px 11px; font-family: Arial, sans-serif; font-size: 12px; outline: none; width: 100%; transition: border-color .2s; }
+  .fi        { background: var(--input-bg); border: 1px solid var(--border-md); color: var(--cream2); padding: 8px 11px; font-family: Arial, sans-serif; font-size: 12px; outline: none; width: 100%; transition: border-color .2s; }
   .fi::placeholder { color: var(--muted); }
   .fi:focus  { border-color: var(--gold); }
   .fs        {
-    background: #1A1510; border: 1px solid rgba(255,255,255,.1); color: var(--cream2);
+    background: var(--input-bg); border: 1px solid var(--border-md); color: var(--cream2);
     padding: 8px 26px 8px 10px; font-family: Arial, sans-serif; font-size: 12px;
     cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; width: 100%;
     transition: border-color .2s;
@@ -187,7 +187,7 @@ const grouped = groupByMonth(events);
   .factions  { display: flex; gap: 8px; align-self: flex-end; }
   .fa        { background: var(--gold); color: var(--dark); border: none; padding: 9px 18px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .17em; text-transform: uppercase; cursor: pointer; font-weight: 700; transition: background .2s; }
   .fa:hover  { background: var(--gold-l); }
-  .fc        { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,.1); padding: 9px 14px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s; }
+  .fc        { background: transparent; color: var(--muted); border: 1px solid var(--border-md); padding: 9px 14px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: border-color .2s, color .2s; }
   .fc:hover  { color: var(--cream); border-color: var(--muted); }
 
   .results-info { font-family: Arial, sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 1.4rem; letter-spacing: .1em; }
@@ -208,7 +208,7 @@ const grouped = groupByMonth(events);
   .ev-row {
     display: grid; grid-template-columns: 70px 44px 1fr auto;
     align-items: center; gap: 18px;
-    padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.045);
+    padding: 14px 12px; border-bottom: 1px solid var(--border-s);
     transition: background .18s, padding-left .18s;
     position: relative; color: inherit; text-decoration: none;
   }
@@ -225,7 +225,7 @@ const grouped = groupByMonth(events);
   .ev-day        { font-family: Georgia, serif; font-size: 1.9rem; color: var(--gold); line-height: 1; display: block; transition: color .2s; }
   .ev-ms         { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
   .ev-thumb-slot { display: flex; align-items: center; justify-content: center; }
-  .ev-thumb      { width: 42px; height: 42px; object-fit: cover; opacity: .65; border: 1px solid rgba(255,255,255,.08); transition: opacity .2s; }
+  .ev-thumb      { width: 42px; height: 42px; object-fit: cover; opacity: .65; border: 1px solid var(--border-sm); transition: opacity .2s; }
   .ev-row--festival:hover .ev-thumb { opacity: 1; }
   .ev-name       { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 5px; line-height: 1.3; transition: color .2s; }
   .ev-meta       { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); font-family: Arial, sans-serif; }

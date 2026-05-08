@@ -34,6 +34,17 @@ export async function getStaticPaths() {
 interface Props { artist: Artist; festivals: Event[] }
 const { artist, festivals } = Astro.props;
 
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const upcomingFestivals = festivals
+  .filter(f => new Date(f.date) >= today)
+  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+const pastFestivals = festivals
+  .filter(f => new Date(f.date) < today)
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
 function initials(name: string): string {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
@@ -109,8 +120,8 @@ function fmtDate(iso: string) {
       </section>
     )}
 
-    <!-- Festivales donde actúa -->
-    {festivals.length > 0 && (
+    <!-- Festivales próximos -->
+    {upcomingFestivals.length > 0 && (
       <section class="afests">
         <div class="afests-inner">
           <div class="sec-header reveal">
@@ -120,7 +131,7 @@ function fmtDate(iso: string) {
           </div>
 
           <div class="afests-list">
-            {festivals.map((f, i) => (
+            {upcomingFestivals.map((f, i) => (
               <a
                 href={`/${slugify(f.name)}/${new Date(f.date).getFullYear()}/`}
                 class="afest-row reveal"
@@ -132,6 +143,40 @@ function fmtDate(iso: string) {
                 </div>
                 <div class="afest-info">
                   <span class="afest-name" transition:name={`festival-${f.id}`}>{f.name}</span>
+                  <span class="afest-loc">{f.city}, {f.country}</span>
+                </div>
+                <span class="afest-arrow">→</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Festivales pasados -->
+    {pastFestivals.length > 0 && (
+      <section class="afests afests--past">
+        <div class="afests-inner">
+          <div class="sec-header reveal">
+            <div class="sec-eyebrow sec-eyebrow--past">Past appearances</div>
+            <h2 class="sec-title">Past Festivals</h2>
+            <p class="sec-sub">Previous editions featuring {artist.name}</p>
+          </div>
+
+          <div class="afests-list">
+            {pastFestivals.map((f, i) => (
+              <a
+                href={`/${slugify(f.name)}/${new Date(f.date).getFullYear()}/`}
+                class="afest-row afest-row--past reveal"
+                style={`--rd:${0.1 + i * 0.07}s`}
+              >
+                <div class="afest-date">
+                  <span class="afest-day afest-day--past">{new Date(f.date).getDate().toString().padStart(2, '0')}</span>
+                  <span class="afest-ms">{MONTH_NAMES[new Date(f.date).getMonth()]}</span>
+                  <span class="afest-year">{new Date(f.date).getFullYear()}</span>
+                </div>
+                <div class="afest-info">
+                  <span class="afest-name">{f.name}</span>
                   <span class="afest-loc">{f.city}, {f.country}</span>
                 </div>
                 <span class="afest-arrow">→</span>
@@ -224,9 +269,9 @@ function fmtDate(iso: string) {
   }
 
   .ahero-avatar {
-    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+    width: 160px; height: 160px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-family: Arial, sans-serif; font-size: 22px; font-weight: 700;
+    font-family: Arial, sans-serif; font-size: 40px; font-weight: 700;
     letter-spacing: .03em; overflow: hidden;
   }
   .avatar-img {
@@ -306,7 +351,7 @@ function fmtDate(iso: string) {
   .afest-row {
     display: grid; grid-template-columns: 60px 1fr auto;
     align-items: center; gap: 16px;
-    padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.045);
+    padding: 14px 12px; border-bottom: 1px solid var(--border-s);
     transition: background .2s, padding-left .22s;
     position: relative; color: inherit;
   }
@@ -344,15 +389,32 @@ function fmtDate(iso: string) {
   }
   .afest-row:hover .afest-arrow { color: var(--teal-l); transform: translateX(6px); }
 
+  /* ── Festivales pasados ── */
+  .afests--past { background: var(--dark2); }
+  .sec-eyebrow--past { color: var(--muted); }
+  .sec-eyebrow--past::after { background: var(--muted); }
+
+  .afest-row--past { opacity: .82; }
+  .afest-row--past::before { background: var(--muted); }
+  .afest-row--past:hover { background: rgba(138,122,90,.07); }
+
+  .afest-day--past { color: var(--muted); font-size: 1.3rem; }
+  .afest-row--past:hover .afest-day--past { color: var(--cream2); }
+
+  .afest-year {
+    font-family: Arial, sans-serif; font-size: 9px;
+    letter-spacing: .12em; color: var(--muted); display: block; margin-top: 1px;
+  }
+
   /* ── Social ── */
-  .asocial { background: var(--dark2); padding: 40px 5vw; border-top: 1px solid rgba(255,255,255,.04); }
+  .asocial { background: var(--dark2); padding: 40px 5vw; border-top: 1px solid var(--border-s); }
   .asocial-inner { max-width: 740px; margin: 0 auto; }
   .social-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.2rem; }
   .social-item {
     display: flex; align-items: center; gap: 14px;
     padding: 16px 20px; flex: 1; min-width: 200px;
-    border: 1px solid rgba(255,255,255,.07);
-    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border-sm);
+    background: var(--surface);
     transition: background .2s, border-color .25s, transform .2s;
     color: inherit; text-decoration: none;
   }

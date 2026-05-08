@@ -521,14 +521,14 @@ const TAG_COLORS: Record<string, string> = {
     font-family: Arial, sans-serif; font-size: 10px;
     letter-spacing: .26em; text-transform: uppercase;
     color: var(--muted); margin-bottom: 1.4rem;
-    padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.06);
+    padding-bottom: 10px; border-bottom: 1px solid var(--border-sm);
   }
   .artists-group-icon { color: var(--gold); }
 
   .artists-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1px; background: rgba(255,255,255,.04);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px; background: var(--surface-gap);
   }
 
   .artist-card {
@@ -607,12 +607,12 @@ const TAG_COLORS: Record<string, string> = {
   .finfo-inner { max-width: 1000px; margin: 0 auto; }
   .finfo-row {
     display: flex; flex-wrap: wrap; gap: 0;
-    border: 1px solid rgba(255,255,255,.06);
+    border: 1px solid var(--border-sm);
   }
   .finfo-item {
     flex: 1; min-width: 180px;
     display: flex; flex-direction: column; gap: 6px;
-    padding: 20px 24px; border-right: 1px solid rgba(255,255,255,.06);
+    padding: 20px 24px; border-right: 1px solid var(--border-sm);
   }
   .finfo-item:last-child { border-right: none; }
   .finfo-label {
@@ -629,15 +629,15 @@ const TAG_COLORS: Record<string, string> = {
   .finfo-link:hover { color: var(--gold-l); }
 
   /* ── Redes sociales ── */
-  .fsocial { background: var(--dark); padding: 48px 5vw; border-top: 1px solid rgba(255,255,255,.04); }
+  .fsocial { background: var(--dark); padding: 48px 5vw; border-top: 1px solid var(--border-s); }
   .fsocial-inner { max-width: 1000px; margin: 0 auto; }
   .fsocial-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1.2rem; }
 
   .fsocial-item {
     display: flex; align-items: center; gap: 14px;
     padding: 16px 20px; flex: 1; min-width: 200px;
-    border: 1px solid rgba(255,255,255,.07);
-    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border-sm);
+    background: var(--surface);
     transition: background .2s, border-color .25s, transform .2s;
     color: inherit;
   }
@@ -667,11 +667,11 @@ const TAG_COLORS: Record<string, string> = {
   .fsocial-item:hover .fsocial-arrow { color: var(--gold); transform: translateX(4px); }
 
   /* ── Mapa ── */
-  .fmap { background: var(--dark2); padding: 56px 5vw; border-top: 1px solid rgba(255,255,255,.04); }
+  .fmap { background: var(--dark2); padding: 56px 5vw; border-top: 1px solid var(--border-s); }
   .fmap-inner { max-width: 1200px; margin: 0 auto; }
   .fmap-title { margin-bottom: 1.4rem; }
   .fmap-wrap {
-    width: 100%; border: 1px solid rgba(255,255,255,.07);
+    width: 100%; border: 1px solid var(--border-sm);
     overflow: hidden; position: relative;
   }
   .fmap-iframe {

@@ -189,6 +189,15 @@ const layers = [
   @keyframes pulse   { 0%,100% { opacity:.3; } 50% { opacity:.9; } }
   @keyframes layerIn { from { opacity:0; transform:scale(1.08); } to { opacity:1; transform:scale(1); } }
 
+  /* El hero es siempre oscuro (parallax + overlay hardcodeados).
+     En light mode las variables de color se invierten, así que forzamos
+     los colores del contenido para que sigan siendo legibles. */
+  :global(html.light) .hero-title        { color: #F0E6C8; }
+  :global(html.light) .hero-title small  { color: #8A7A5A; }
+  :global(html.light) .hero-desc         { color: #D4C49A; }
+  :global(html.light) .btn-o             { color: #F0E6C8; }
+  :global(html.light) .btn-p             { color: #0D0A07; }
+
   #l-fondo   .layer-img { animation: layerIn 2.0s cubic-bezier(.4,0,.2,1) 0.1s both; }
   #l-musicos .layer-img { animation: layerIn 1.7s cubic-bezier(.4,0,.2,1) 0.7s both; }
   #l-crowd   .layer-img { animation: layerIn 1.4s cubic-bezier(.4,0,.2,1) 1.3s both; }

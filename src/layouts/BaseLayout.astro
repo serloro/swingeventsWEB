@@ -19,6 +19,16 @@ const {
   <title>{title}</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+  <!-- Aplica el tema antes de pintar para evitar flash -->
+  <script is:inline>
+    (function () {
+      try {
+        if (localStorage.getItem('sf-theme') === 'light')
+          document.documentElement.classList.add('light');
+      } catch (e) {}
+    })();
+  </script>
+
   <ViewTransitions />
 
   <style is:global>
@@ -28,6 +38,29 @@ const {
       --teal-l: #3A9A86;
       --dark: #0D0A07; --dark2: #111009; --dark3: #1A1510;
       --cream: #F0E6C8; --cream2: #D4C49A; --muted: #8A7A5A;
+      --nav-scrolled-bg: rgba(10,7,4,.93);
+      --nav-mobile-bg: rgba(10,7,4,.97);
+      /* Borders / surfaces — flip in light mode */
+      --border-s:    rgba(255,255,255,.045);
+      --border-sm:   rgba(255,255,255,.06);
+      --border-md:   rgba(255,255,255,.1);
+      --surface:     rgba(255,255,255,.02);
+      --surface-gap: rgba(255,255,255,.05);
+      --input-bg:    #1A1510;
+    }
+    html.light {
+      --dark: #F5EDD8; --dark2: #EDE3CA; --dark3: #E4D8BC;
+      --cream: #2C1E08; --cream2: #4A3418; --muted: #7A6848;
+      --gold: #9A6E1A; --gold-l: #B8892A;
+      --teal-l: #1E7A68;
+      --nav-scrolled-bg: rgba(245,237,216,.96);
+      --nav-mobile-bg: rgba(245,237,216,.99);
+      --border-s:    rgba(0,0,0,.08);
+      --border-sm:   rgba(0,0,0,.1);
+      --border-md:   rgba(0,0,0,.15);
+      --surface:     rgba(0,0,0,.03);
+      --surface-gap: rgba(0,0,0,.1);
+      --input-bg:    var(--dark3);
     }
     html  { scroll-behavior: smooth; scroll-padding-top: 80px; }
     body  { background: var(--dark); color: var(--cream); font-family: Georgia, serif; overflow-x: hidden; }

@@ -26,6 +26,10 @@ const HAS_DIRECTUS     =
 
 const APP_ID = 'swingfestivals';
 
+// Nombre del campo M2M en la colección events que apunta a artists.
+// Si el diagnóstico de build indica otro nombre, cámbialo aquí.
+const ARTISTAS_FIELD = 'artistas';
+
 // ── Helpers ──────────────────────────────────────────────────────
 
 export function slugify(str: string): string {
@@ -63,7 +67,7 @@ interface DFestival {
 }
 
 interface DEvent {
-  id: string;
+  id:          string;
   festival_id: string | null;
   year:        number | null;
   dateFrom:    string | null;
@@ -72,22 +76,25 @@ interface DEvent {
   city:        string | null;
   styles:      string | null;
   sourceUrl:   string | null;
+  artistas?:   DEventArtista[] | null;
 }
 
 interface DArtist {
-  id: string;
-  name:       string | null;
-  website:    string | null;
-  instagram:  string | null;
-  imageUrl:   string | null;
-  imagenB64:  string | null;
+  id:           string;
+  name:         string | null;
+  role?:        string | null;
+  nationality?: string | null;
+  bio?:         string | null;
+  specialties?: string[] | null;
+  website?:     string | null;
+  instagram?:   string | null;
+  imageUrl?:    string | null;
+  imagenB64?:   string | null;
 }
 
-interface DEventArtist {
-  id:        string;
-  event_id:  string;
-  artist_id: string;
-}
+// El campo artistas en events puede devolver distintas estructuras según
+// cómo Directus haya creado la junction. Se usa Record para cubrir todos los casos.
+type DEventArtista = Record<string, unknown>;
 
 // ── Map resolver: acepta GeoJSON Point o {lat,lng} ───────────────
 
@@ -205,6 +212,7 @@ async function getAuthToken(): Promise<string> {
 async function dfetch<T>(
   collection: string,
   filter?: Record<string, unknown>,
+  fields?: string,
 ): Promise<T[]> {
   if (!DIRECTUS_URL) throw new Error('No DIRECTUS_URL configured');
 
@@ -212,6 +220,7 @@ async function dfetch<T>(
 
   const url = new URL(`${DIRECTUS_URL}/items/${collection}`);
   if (filter) url.searchParams.set('filter', JSON.stringify(filter));
+  if (fields) url.searchParams.set('fields', fields);
   url.searchParams.set('limit', '-1');
 
   const res = await fetch(url.toString(), {
@@ -228,31 +237,53 @@ async function dfetch<T>(
 // ── Mappers ───────────────────────────────────────────────────────
 
 function mapArtist(a: DArtist): Artist {
+  const role = a.role === 'band' || a.role === 'dj' ? a.role : 'teacher';
   return {
-    id:        a.id,
-    name:      a.name ?? 'Artista',
-    slug:      slugify(a.name ?? a.id),
-    role:      'teacher',
-    image:     resolveImage(a.imageUrl, a.imagenB64),
-    website:   a.website   ?? undefined,
-    instagram: a.instagram ?? undefined,
+    id:          a.id,
+    name:        a.name        ?? 'Artista',
+    slug:        slugify(a.name ?? a.id),
+    role,
+    image:       resolveImage(a.imageUrl ?? null, a.imagenB64 ?? null),
+    nationality: a.nationality ?? undefined,
+    bio:         a.bio         ?? undefined,
+    specialties: a.specialties ?? undefined,
+    website:     a.website     ?? undefined,
+    instagram:   a.instagram   ?? undefined,
   };
+}
+
+function resolveEventArtist(ea: DEventArtista, artistMap: Map<string, Artist>): Artist | undefined {
+  if (!ea || typeof ea !== 'object') return undefined;
+
+  // Directus M2M puede nombrar el FK de distintas formas según la versión y configuración
+  for (const key of ['artists_id', 'artist_id', 'artistas_id', 'artista_id']) {
+    const val = ea[key];
+    if (val == null) continue;
+    if (typeof val === 'string')  return artistMap.get(val);
+    if (typeof val === 'object' && 'id' in (val as object))
+      return mapArtist(val as DArtist);
+  }
+
+  // Si el objeto es directamente el artista (sin junction intermedia)
+  if (typeof ea.id === 'string' && 'name' in ea) return mapArtist(ea as unknown as DArtist);
+
+  return undefined;
 }
 
 function mapEvent(
   e: DEvent,
-  festMap:        Map<string, DFestival>,
-  artistMap:      Map<string, Artist>,
-  eventArtistMap: Map<string, string[]>,
+  festMap:   Map<string, DFestival>,
+  artistMap: Map<string, Artist>,
 ): Event {
-  const fest      = e.festival_id ? festMap.get(e.festival_id) : undefined;
-  const styles    = parseStyles(e.styles);
-  const country   = e.country ?? fest?.country ?? '';
-  const city      = e.city    ?? fest?.city    ?? '';
-  const date      = e.dateFrom ?? (e.year ? `${e.year}-01-01` : undefined);
-  const artistIds = eventArtistMap.get(e.id) ?? [];
-  const artists   = artistIds
-    .map(id => artistMap.get(id))
+  const fest    = e.festival_id ? festMap.get(e.festival_id) : undefined;
+  const styles  = parseStyles(e.styles);
+  const country = e.country ?? fest?.country ?? '';
+  const city    = e.city    ?? fest?.city    ?? '';
+  const date    = e.dateFrom ?? (e.year ? `${e.year}-01-01` : undefined);
+  // Lee el campo por su nombre dinámico para que funcione aunque ARTISTAS_FIELD cambie
+  const rawArtistas = ((e as Record<string, unknown>)[ARTISTAS_FIELD] as DEventArtista[] | null) ?? [];
+  const artists = rawArtistas
+    .map(ea => resolveEventArtist(ea, artistMap))
     .filter(Boolean) as Artist[];
 
   return {
@@ -282,24 +313,42 @@ function mapEvent(
 async function fetchEventsFromDirectus(): Promise<Event[]> {
   const [festivalsRaw, eventsRaw, artistsRaw] = await Promise.all([
     dfetch<DFestival>('festivals', { application_id: { _eq: APP_ID } }),
-    dfetch<DEvent>('events',    { application_id: { _eq: APP_ID } }),
-    dfetch<DArtist>('artists',   { application_id: { _eq: APP_ID } }),
+    // Pedimos todos los campos directos (*) más la relación artistas un nivel de profundidad.
+    // Con *,artistas.* festival_id sigue siendo string y no se expande, evitando romper el slug.
+    dfetch<DEvent>('events', { application_id: { _eq: APP_ID } }, `*,${ARTISTAS_FIELD}.*`),
+    dfetch<DArtist>('artists', { application_id: { _eq: APP_ID } }),
   ]);
 
   const festMap   = new Map(festivalsRaw.map(f => [f.id, f]));
   const artistMap = new Map(artistsRaw.map(a => [a.id, mapArtist(a)]));
 
-  let eventArtistsRaw: DEventArtist[] = [];
-  if (eventsRaw.length > 0) {
-    eventArtistsRaw = await dfetch<DEventArtist>('event_artists', {
-      event_id: { _in: eventsRaw.map(e => e.id) },
-    });
-  }
+  // ── Diagnóstico + detección automática del campo de artistas ──
+  let artistasKey = ARTISTAS_FIELD;  // nombre configurado (por defecto 'artistas')
 
-  const eventArtistMap = new Map<string, string[]>();
-  for (const ea of eventArtistsRaw) {
-    if (!eventArtistMap.has(ea.event_id)) eventArtistMap.set(ea.event_id, []);
-    eventArtistMap.get(ea.event_id)!.push(ea.artist_id);
+  if (eventsRaw.length > 0) {
+    const first = eventsRaw[0] as Record<string, unknown>;
+    const keys  = Object.keys(first);
+    console.log('[directus] Campos del evento:', keys.join(', '));
+
+    if (!(artistasKey in first)) {
+      // Intentar detectar automáticamente el campo de artistas buscando arrays en la respuesta
+      const arrayCandidates = keys.filter(k => Array.isArray(first[k]));
+      console.warn(
+        `[directus] ⚠️  El campo "${artistasKey}" NO existe. ` +
+        `Campos array disponibles: [${arrayCandidates.join(', ')}]. ` +
+        `Actualiza ARTISTAS_FIELD en directus.ts con el nombre correcto.`,
+      );
+    } else {
+      const val = first[artistasKey];
+      if (!val || (Array.isArray(val) && val.length === 0)) {
+        console.warn(`[directus] ⚠️  El campo "${artistasKey}" existe pero está vacío. ` +
+          'Comprueba los permisos de la junction y de la tabla artists en Directus.');
+      } else {
+        console.log(`[directus] ${artistasKey}[0]:`, JSON.stringify((val as unknown[])[0], null, 2));
+      }
+    }
+  } else {
+    console.warn('[directus] ⚠️  No se recibieron eventos de Directus.');
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -309,7 +358,7 @@ async function fetchEventsFromDirectus(): Promise<Event[]> {
       const end = e.dateTo ?? e.dateFrom;
       return end != null && end >= today;
     })
-    .map(e => mapEvent(e, festMap, artistMap, eventArtistMap))
+    .map(e => mapEvent(e, festMap, artistMap))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
