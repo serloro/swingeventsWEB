@@ -12,11 +12,12 @@
 import type { Event, Post, Artist, LatLng } from '../types/index.js';
 
 // ── Config ───────────────────────────────────────────────────────
-const RAW_URL          = import.meta.env.DIRECTUS_URL      as string | undefined;
-const DIRECTUS_EMAIL   = import.meta.env.DIRECTUS_EMAIL    as string | undefined;
-const DIRECTUS_PASS    = import.meta.env.DIRECTUS_PASSWORD as string | undefined;
-const USE_MOCK         = import.meta.env.USE_MOCK_DATA === 'true';
-const DIRECTUS_URL     = RAW_URL?.replace(/\/$/, '');
+const RAW_URL            = import.meta.env.DIRECTUS_URL           as string | undefined;
+const DIRECTUS_EMAIL     = import.meta.env.DIRECTUS_EMAIL         as string | undefined;
+const DIRECTUS_PASS      = import.meta.env.DIRECTUS_PASSWORD      as string | undefined;
+const DIRECTUS_TOKEN     = import.meta.env.DIRECTUS_STATIC_TOKEN  as string | undefined;
+const USE_MOCK           = import.meta.env.USE_MOCK_DATA === 'true';
+const DIRECTUS_URL       = RAW_URL?.replace(/\/$/, '');
 const HAS_DIRECTUS     =
   !!DIRECTUS_URL &&
   DIRECTUS_URL !== 'https://tu-directus.com' &&
@@ -41,11 +42,18 @@ export function slugify(str: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export function assetUrl(idOrUrl: string | undefined): string | undefined {
+export function assetUrl(idOrUrl: unknown): string | undefined {
   if (!idOrUrl) return undefined;
-  if (idOrUrl.startsWith('http')) return idOrUrl;
+  // Directus sometimes returns file relations as {id:"uuid",...} instead of a plain UUID string
+  const id = typeof idOrUrl === 'object' && idOrUrl !== null && 'id' in idOrUrl
+    ? String((idOrUrl as Record<string, unknown>).id)
+    : String(idOrUrl);
+  if (!id) return undefined;
+  if (id.startsWith('http')) return id;
   if (!DIRECTUS_URL) return undefined;
-  return `${DIRECTUS_URL}/assets/${idOrUrl}`;
+  const base = `${DIRECTUS_URL}/assets/${id}`;
+  // If files are not public, a static token (DIRECTUS_STATIC_TOKEN) can be appended
+  return DIRECTUS_TOKEN ? `${base}?access_token=${DIRECTUS_TOKEN}` : base;
 }
 
 // ── Raw Directus response types ───────────────────────────────────
@@ -61,6 +69,7 @@ interface DFestival {
   instagram:   string | null;
   facebook:    string | null;
   youtube:     string | null;
+  image?:      string | { id: string } | null;
   imageUrl:    string | null;
   imagenB64:   string | null;
   map:         { type: string; coordinates: [number, number] } | { lat: number; lng: number } | null;
@@ -76,6 +85,8 @@ interface DEvent {
   city:        string | null;
   styles:      string | null;
   sourceUrl:   string | null;
+  image?:      string | null;
+  descripcion?: string | null;
   artistas?:   DEventArtista[] | null;
 }
 
@@ -88,6 +99,7 @@ interface DArtist {
   specialties?: string[] | null;
   website?:     string | null;
   instagram?:   string | null;
+  image?:       string | null;
   imageUrl?:    string | null;
   imagenB64?:   string | null;
 }
@@ -110,10 +122,16 @@ function resolveMap(
   return undefined;
 }
 
-// ── Image resolver: URL tiene prioridad sobre base64 ─────────────
+// ── Image resolver: image > imageUrl > imagenB64 ─────────────────
 
-function resolveImage(imageUrl: string | null, imagenB64: string | null): string | undefined {
-  if (imageUrl) return assetUrl(imageUrl);
+function resolveImage(
+  image:    unknown,
+  imageUrl: unknown,
+  imagenB64: string | null | undefined,
+): string | undefined {
+  // Use || instead of ?? so empty strings also fall through
+  const id = (image || imageUrl) as unknown;
+  if (id) return assetUrl(id);
   if (imagenB64) {
     if (imagenB64.startsWith('data:')) return imagenB64;
     return `data:image/jpeg;base64,${imagenB64}`;
@@ -216,22 +234,32 @@ async function dfetch<T>(
 ): Promise<T[]> {
   if (!DIRECTUS_URL) throw new Error('No DIRECTUS_URL configured');
 
-  const token = await getAuthToken();
-
   const url = new URL(`${DIRECTUS_URL}/items/${collection}`);
   if (filter) url.searchParams.set('filter', JSON.stringify(filter));
   if (fields) url.searchParams.set('fields', fields);
   url.searchParams.set('limit', '-1');
 
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) {
-    throw new Error(`Directus [${collection}]: ${res.status} ${res.statusText}`);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const token = await getAuthToken();
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.status === 401) {
+      // Token expirado — limpiar caché y reintentar con uno nuevo
+      _cachedToken = undefined;
+      continue;
+    }
+
+    if (!res.ok) {
+      throw new Error(`Directus [${collection}]: ${res.status} ${res.statusText}`);
+    }
+
+    const json: { data: T[] } = await res.json();
+    return json.data;
   }
 
-  const json: { data: T[] } = await res.json();
-  return json.data;
+  throw new Error(`Directus [${collection}]: 401 Unauthorized`);
 }
 
 // ── Mappers ───────────────────────────────────────────────────────
@@ -243,7 +271,7 @@ function mapArtist(a: DArtist): Artist {
     name:        a.name        ?? 'Artista',
     slug:        slugify(a.name ?? a.id),
     role,
-    image:       resolveImage(a.imageUrl ?? null, a.imagenB64 ?? null),
+    image:       resolveImage(a.image, a.imageUrl, a.imagenB64),
     nationality: a.nationality ?? undefined,
     bio:         a.bio         ?? undefined,
     specialties: a.specialties ?? undefined,
@@ -295,12 +323,12 @@ function mapEvent(
     continent:   getContinent(country),
     style:       styles[0] ?? 'Swing',
     type:        'festival',
-    description: fest?.description ?? undefined,
+    description: e.descripcion || fest?.description || undefined,
     url:         fest?.website      ?? undefined,
     instagram:   fest?.instagram   ?? undefined,
     facebook:    fest?.facebook    ?? undefined,
     youtube:     fest?.youtube     ?? undefined,
-    image:       resolveImage(fest?.imageUrl ?? null, fest?.imagenB64 ?? null),
+    image:       resolveImage(e.image, fest?.image ?? fest?.imageUrl, fest?.imagenB64),
     artists:     artists.length > 0 ? artists : undefined,
     ticketUrl:   e.sourceUrl ?? undefined,
     map:         resolveMap(fest?.map ?? null),
@@ -321,6 +349,15 @@ async function fetchEventsFromDirectus(): Promise<Event[]> {
 
   const festMap   = new Map(festivalsRaw.map(f => [f.id, f]));
   const artistMap = new Map(artistsRaw.map(a => [a.id, mapArtist(a)]));
+
+  // ── Diagnóstico de imagen en festivales ──
+  for (const f of festivalsRaw) {
+    if (f.image || f.imageUrl) {
+      console.log(`[directus] Festival "${f.title}" image=${JSON.stringify(f.image)} imageUrl=${f.imageUrl}`);
+    } else {
+      console.log(`[directus] Festival "${f.title}" sin imagen`);
+    }
+  }
 
   // ── Diagnóstico + detección automática del campo de artistas ──
   let artistasKey = ARTISTAS_FIELD;  // nombre configurado (por defecto 'artistas')
