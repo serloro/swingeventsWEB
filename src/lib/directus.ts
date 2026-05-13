@@ -64,6 +64,7 @@ interface DFestival {
   country:     string | null;
   city:        string | null;
   location:    string | null;
+  continent?:  string | null;
   description: string | null;
   website:     string | null;
   instagram:   string | null;
@@ -320,7 +321,7 @@ function mapEvent(
     date:        date ?? '2025-01-01',
     city,
     country,
-    continent:   getContinent(country),
+    continent:   fest?.continent || getContinent(country),
     style:       styles[0] ?? 'Swing',
     type:        'festival',
     description: e.descripcion || fest?.description || undefined,

@@ -101,7 +101,9 @@ const TAG_COLORS: Record<string, string> = {
       </div>
 
       <p class="fhero-loc reveal" style="--rd:.2s">
-        <span class="loc-icon">◈</span>
+        <svg class="loc-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
         {event.city}, {event.country}
         <span class="loc-sep">·</span>
         {event.continent}
@@ -110,11 +112,17 @@ const TAG_COLORS: Record<string, string> = {
       <div class="fhero-actions reveal" style="--rd:.25s">
         {event.ticketUrl && (
           <a href={event.ticketUrl} target="_blank" rel="noopener" class="btn-tickets">
-            Tickets →
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            Tickets
           </a>
         )}
         {event.url && (
           <a href={event.url} target="_blank" rel="noopener" class="btn-web">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
             Official website
           </a>
         )}
@@ -277,12 +285,12 @@ const TAG_COLORS: Record<string, string> = {
               <a
                 href={event.instagram.startsWith('http') ? event.instagram : `https://instagram.com/${event.instagram.replace(/^@/, '')}`}
                 target="_blank" rel="noopener"
-                class="fsocial-item"
+                class="fsocial-item fsocial-instagram"
               >
                 <span class="fsocial-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/>
-                    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                  <!-- Instagram logo -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.17.054 1.805.249 2.227.415.56.217.96.477 1.382.896.42.42.68.82.896 1.381.166.422.361 1.057.415 2.227.058 1.265.07 1.645.07 4.849s-.012 3.584-.07 4.85c-.054 1.17-.249 1.805-.415 2.226a3.712 3.712 0 01-.896 1.382 3.712 3.712 0 01-1.382.896c-.421.166-1.056.361-2.226.415-1.267.058-1.647.07-4.851.07s-3.584-.012-4.849-.07c-1.17-.054-1.805-.249-2.227-.415a3.712 3.712 0 01-1.381-.896 3.712 3.712 0 01-.896-1.382c-.166-.421-.361-1.056-.415-2.226C2.175 15.584 2.163 15.204 2.163 12s.012-3.584.07-4.85c.054-1.17.249-1.805.415-2.226a3.712 3.712 0 01.896-1.382A3.712 3.712 0 014.925 2.65c.422-.166 1.057-.361 2.227-.415C8.416 2.175 8.796 2.163 12 2.163zm0-2.163C8.741 0 8.333.014 7.053.072 5.775.13 4.902.333 4.14.63a5.877 5.877 0 00-2.126 1.384A5.877 5.877 0 00.63 4.14C.333 4.902.13 5.775.072 7.053.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.058 1.277.261 2.15.558 2.913a5.877 5.877 0 001.384 2.126A5.877 5.877 0 004.14 23.37c.763.297 1.636.5 2.913.558C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 1.277-.058 2.15-.261 2.913-.558a5.877 5.877 0 002.126-1.384 5.877 5.877 0 001.384-2.126c.297-.763.5-1.636.558-2.913C23.986 15.668 24 15.259 24 12c0-3.259-.014-3.667-.072-4.947-.058-1.278-.261-2.151-.558-2.913a5.877 5.877 0 00-1.384-2.126A5.877 5.877 0 0019.86.63C19.098.333 18.225.13 16.948.072 15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                   </svg>
                 </span>
                 <div>
@@ -296,11 +304,12 @@ const TAG_COLORS: Record<string, string> = {
               <a
                 href={event.facebook.startsWith('http') ? event.facebook : `https://facebook.com/${event.facebook}`}
                 target="_blank" rel="noopener"
-                class="fsocial-item"
+                class="fsocial-item fsocial-facebook"
               >
                 <span class="fsocial-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                  <!-- Facebook logo -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.886v2.269h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
                   </svg>
                 </span>
                 <div>
@@ -314,12 +323,12 @@ const TAG_COLORS: Record<string, string> = {
               <a
                 href={event.youtube.startsWith('http') ? event.youtube : `https://youtube.com/@${event.youtube.replace(/^@/, '')}`}
                 target="_blank" rel="noopener"
-                class="fsocial-item"
+                class="fsocial-item fsocial-youtube"
               >
                 <span class="fsocial-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
-                    <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/>
+                  <!-- YouTube logo -->
+                  <svg width="22" height="16" viewBox="0 0 576 512" fill="currentColor" aria-hidden="true">
+                    <path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"/>
                   </svg>
                 </span>
                 <div>
@@ -332,10 +341,11 @@ const TAG_COLORS: Record<string, string> = {
             {event.url && (
               <a href={event.url} target="_blank" rel="noopener" class="fsocial-item">
                 <span class="fsocial-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- External link / website -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                   </svg>
                 </span>
                 <div>
@@ -535,7 +545,7 @@ const TAG_COLORS: Record<string, string> = {
     font-family: Arial, sans-serif; font-size: 13px; color: var(--cream2);
     margin-bottom: 1.8rem; position: relative; z-index: 3;
   }
-  .loc-icon { color: var(--gold); font-size: .8em; }
+  .loc-icon { color: var(--gold); flex-shrink: 0; }
   .loc-sep  { color: var(--muted); }
 
   .fhero-actions {
@@ -543,6 +553,7 @@ const TAG_COLORS: Record<string, string> = {
     position: relative; z-index: 3;
   }
   .btn-tickets {
+    display: inline-flex; align-items: center; gap: 7px;
     background: var(--gold); color: var(--dark);
     font-family: Arial, sans-serif; font-size: 10px;
     letter-spacing: .18em; text-transform: uppercase; font-weight: 700;
@@ -556,6 +567,7 @@ const TAG_COLORS: Record<string, string> = {
   }
   .btn-tickets:active { transform: translateY(0); box-shadow: none; }
   .btn-web {
+    display: inline-flex; align-items: center; gap: 7px;
     border: 1px solid rgba(255,255,255,.15); color: var(--muted);
     font-family: Arial, sans-serif; font-size: 10px;
     letter-spacing: .18em; text-transform: uppercase;

@@ -38,6 +38,12 @@ function fmtMonthShort(dateStr: string) {
 }
 
 const grouped = groupByMonth(events);
+
+function monthToPath(key: string): string {
+  const [name, y] = key.split(' ');
+  const m = String(MONTH_NAMES.indexOf(name) + 1).padStart(2, '0');
+  return `/mapa/${y}/${m}/`;
+}
 ---
 
 <section id="eventos" class="content">
@@ -98,24 +104,48 @@ const grouped = groupByMonth(events);
           <div class="month-hdr">
             {month}
             <span>{evs.length} event{evs.length !== 1 ? 's' : ''}</span>
+            <a href={monthToPath(month)} class="month-map-btn" title="View on map">
+              <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M8 0C5.24 0 3 2.24 3 5c0 4.5 5 11 5 11S13 9.5 13 5c0-2.76-2.24-5-5-5zm0 7.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+              Map
+            </a>
           </div>
           {evs.map(e => {
             const isFestival = e.type === 'festival';
             const festUrl    = `/${slugify(e.name)}/${new Date(e.date).getFullYear()}/`;
             const Tag        = isFestival ? 'a' : 'div';
+            const hasImage   = isFestival && !!e.image;
+            const tagColor   = TAG_COLORS[e.type] ?? '#888';
             return (
               <Tag
-                class={`ev-row${isFestival ? ' ev-row--festival' : ''}`}
-
+                class={`ev-row${isFestival ? ' ev-row--festival' : ''}${hasImage ? ' has-image' : ''}`}
                 href={isFestival ? festUrl : undefined}
-                {...(isFestival ? {} : {})}
               >
+                {hasImage && (
+                  <div class="ev-banner" aria-hidden="true">
+                    <img src={e.image} alt="" class="ev-banner-img" loading="lazy" />
+                    <div class="ev-banner-ui">
+                      <div class="ev-banner-date">
+                        <span class="ev-day">{fmtDay(e.date)}</span>
+                        <span class="ev-ms">{fmtMonthShort(e.date)}</span>
+                      </div>
+                      <span class="ev-tag ev-tag--glass" style={`color:${tagColor};border-color:${tagColor}`}>{e.type}</span>
+                    </div>
+                    <div class="ev-banner-foot">
+                      <div class="ev-banner-name">{e.name}</div>
+                      <div class="ev-banner-meta">
+                        <span>{e.city}, {e.country}</span>
+                        <span>{e.style}</span>
+                      </div>
+                    </div>
+                    <span class="ev-arrow ev-arrow--banner">→</span>
+                  </div>
+                )}
                 <div class="ev-date">
                   <span class="ev-day">{fmtDay(e.date)}</span>
                   <span class="ev-ms">{fmtMonthShort(e.date)}</span>
                 </div>
                 <div class="ev-thumb-slot">
-                  {e.image && <img src={e.image} alt="" class="ev-thumb" />}
+                  {e.image && <img src={e.image} alt="" class="ev-thumb" loading="lazy" />}
                 </div>
                 <div class="ev-info">
                   <div
@@ -131,7 +161,7 @@ const grouped = groupByMonth(events);
                   </div>
                 </div>
                 <div class="ev-aside">
-                  <span class="ev-tag" style={`color:${TAG_COLORS[e.type]};border-color:${TAG_COLORS[e.type]};`}>
+                  <span class="ev-tag" style={`color:${tagColor};border-color:${tagColor};`}>
                     {e.type}
                   </span>
                   {isFestival && <span class="ev-arrow">→</span>}
@@ -204,9 +234,20 @@ const grouped = groupByMonth(events);
     padding-bottom: 9px; border-bottom: 1px solid rgba(201,168,76,.2);
   }
   .month-hdr span { font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+  .month-map-btn {
+    margin-left: auto; display: flex; align-items: center; gap: 5px;
+    font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--border-md); padding: 4px 11px;
+    transition: color .2s, border-color .2s; white-space: nowrap;
+  }
+  .month-map-btn:hover { color: var(--gold); border-color: rgba(201,168,76,.5); }
+
+  /* ── Banner (mobile card, hidden on desktop) ── */
+  .ev-banner { display: none; }
 
   .ev-row {
-    display: grid; grid-template-columns: 70px 44px 1fr auto;
+    display: grid; grid-template-columns: 70px 56px 1fr auto;
     align-items: center; gap: 18px;
     padding: 14px 12px; border-bottom: 1px solid var(--border-s);
     transition: background .18s, padding-left .18s;
@@ -225,7 +266,7 @@ const grouped = groupByMonth(events);
   .ev-day        { font-family: Georgia, serif; font-size: 1.9rem; color: var(--gold); line-height: 1; display: block; transition: color .2s; }
   .ev-ms         { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
   .ev-thumb-slot { display: flex; align-items: center; justify-content: center; }
-  .ev-thumb      { width: 42px; height: 42px; object-fit: cover; opacity: .65; border: 1px solid var(--border-sm); transition: opacity .2s; }
+  .ev-thumb      { width: 52px; height: 52px; object-fit: cover; opacity: .65; border: 1px solid var(--border-sm); transition: opacity .2s; }
   .ev-row--festival:hover .ev-thumb { opacity: 1; }
   .ev-name       { font-family: Georgia, serif; font-size: 1rem; color: var(--cream); margin-bottom: 5px; line-height: 1.3; transition: color .2s; }
   .ev-meta       { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); font-family: Arial, sans-serif; }
@@ -240,12 +281,100 @@ const grouped = groupByMonth(events);
   .ev-row--festival:hover .ev-name  { color: #FAF5E8; }
   .no-results    { padding: 3rem 0; text-align: center; color: var(--muted); font-style: italic; }
 
+  /* ── Mobile ── */
   @media (max-width: 600px) {
-    .ev-row { grid-template-columns: 58px 38px 1fr auto; gap: 10px; padding: 12px 8px; }
-    .ev-tag { display: none; }
-    .ev-day { font-size: 1.5rem; }
-    .ev-thumb { width: 36px; height: 36px; }
-    .ev-meta  { gap: 6px; font-size: 10px; }
+    /* Festival with image → full-width card */
+    .ev-row--festival.has-image {
+      display: block;
+      padding: 0;
+      border-bottom: none;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .ev-row--festival.has-image::before { display: none; }
+    .ev-row--festival.has-image .ev-date,
+    .ev-row--festival.has-image .ev-thumb-slot,
+    .ev-row--festival.has-image .ev-info,
+    .ev-row--festival.has-image .ev-aside { display: none; }
+
+    /* Banner card */
+    .ev-row--festival.has-image .ev-banner {
+      display: block;
+      position: relative;
+      height: 170px;
+      overflow: hidden;
+      background: var(--dark3);
+      border-bottom: 1px solid var(--border-s);
+    }
+    .ev-banner-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: .82;
+      transition: transform .45s ease, opacity .25s;
+    }
+    @media (hover: hover) {
+      .ev-row--festival.has-image:hover .ev-banner-img {
+        transform: scale(1.04);
+        opacity: 1;
+      }
+    }
+    /* Top row: date badge + tag */
+    .ev-banner-ui {
+      position: absolute; top: 10px; left: 10px; right: 10px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .ev-banner-date {
+      background: rgba(13,10,7,.72);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(201,168,76,.28);
+      padding: 5px 9px; text-align: center; line-height: 1;
+    }
+    .ev-banner-date .ev-day { font-size: 1.35rem; color: var(--gold); }
+    .ev-banner-date .ev-ms  { font-size: 8px; letter-spacing: .18em; color: rgba(201,168,76,.7); }
+    .ev-tag--glass {
+      background: rgba(13,10,7,.72);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      padding: 4px 10px; font-size: 8.5px; letter-spacing: .14em;
+    }
+    /* Bottom gradient + text */
+    .ev-banner-foot {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 36px 12px 12px;
+      background: linear-gradient(to bottom, transparent, rgba(10,7,4,.88));
+    }
+    .ev-banner-name {
+      font-family: Georgia, serif; font-size: 1.05rem;
+      color: var(--cream); margin-bottom: 4px; line-height: 1.25;
+    }
+    .ev-banner-meta {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      font-family: Arial, sans-serif; font-size: 10px;
+      color: rgba(201,180,130,.72);
+    }
+    .ev-banner-meta span + span::before {
+      content: '·'; margin-right: 8px; opacity: .5;
+    }
+    /* Arrow */
+    .ev-arrow--banner {
+      position: absolute; bottom: 12px; right: 12px;
+      color: var(--gold); font-size: .9rem; opacity: .8;
+      transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s;
+    }
+    @media (hover: hover) {
+      .ev-row--festival.has-image:hover .ev-arrow--banner {
+        transform: translateX(5px); opacity: 1;
+      }
+    }
+
+    /* Standard row (no image / non-festival) */
+    .ev-row:not(.has-image) {
+      grid-template-columns: 58px 38px 1fr auto;
+      gap: 10px; padding: 12px 8px;
+    }
+    .ev-row:not(.has-image) .ev-tag  { display: none; }
+    .ev-row:not(.has-image) .ev-day  { font-size: 1.5rem; }
+    .ev-row:not(.has-image) .ev-thumb { width: 36px; height: 36px; }
+    .ev-row:not(.has-image) .ev-meta  { gap: 6px; font-size: 10px; }
   }
 </style>
 
@@ -276,18 +405,47 @@ const grouped = groupByMonth(events);
     const dt = new Date(d);
     return `${MONTH_NAMES[dt.getMonth()]} ${dt.getFullYear()}`;
   }
+  function monthToPath(key: string): string {
+    const parts = key.split(' ');
+    const m = String(MONTH_NAMES.indexOf(parts[0]) + 1).padStart(2, '0');
+    return `/mapa/${parts[1]}/${m}/`;
+  }
+
+  const PIN_SVG = '<svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M8 0C5.24 0 3 2.24 3 5c0 4.5 5 11 5 11S13 9.5 13 5c0-2.76-2.24-5-5-5zm0 7.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>';
 
   function eventRow(e: any): string {
-    const isFest  = e.type === 'festival';
-    const tag     = isFest ? 'a' : 'div';
-    const href    = isFest ? `href="/${slugify(e.name)}/${new Date(e.date).getFullYear()}/"` : '';
-    const rowCls  = isFest ? 'ev-row ev-row--festival' : 'ev-row';
+    const isFest   = e.type === 'festival';
+    const hasImage = isFest && !!e.image;
+    const tag      = isFest ? 'a' : 'div';
+    const href     = isFest ? `href="/${slugify(e.name)}/${new Date(e.date).getFullYear()}/"` : '';
+    const rowCls   = `ev-row${isFest ? ' ev-row--festival' : ''}${hasImage ? ' has-image' : ''}`;
     const nameAttr = isFest ? `data-astro-transition-name="festival-${e.id}"` : '';
-    const arrow   = isFest ? '<span class="ev-arrow">→</span>' : '';
-    const color   = TAG_COLORS[e.type] ?? '#888';
-    const thumb   = e.image ? `<img src="${e.image}" alt="" class="ev-thumb" />` : '';
+    const arrow    = isFest ? '<span class="ev-arrow">→</span>' : '';
+    const color    = TAG_COLORS[e.type] ?? '#888';
+    const thumb    = e.image ? `<img src="${e.image}" alt="" class="ev-thumb" loading="lazy" />` : '';
+
+    const banner = hasImage ? `
+      <div class="ev-banner" aria-hidden="true">
+        <img src="${e.image}" alt="" class="ev-banner-img" loading="lazy" />
+        <div class="ev-banner-ui">
+          <div class="ev-banner-date">
+            <span class="ev-day">${fmtDay(e.date)}</span>
+            <span class="ev-ms">${fmtMs(e.date)}</span>
+          </div>
+          <span class="ev-tag ev-tag--glass" style="color:${color};border-color:${color}">${e.type}</span>
+        </div>
+        <div class="ev-banner-foot">
+          <div class="ev-banner-name">${e.name}</div>
+          <div class="ev-banner-meta">
+            <span>${e.city}, ${e.country}</span>
+            <span>${e.style}</span>
+          </div>
+        </div>
+        <span class="ev-arrow ev-arrow--banner">→</span>
+      </div>` : '';
 
     return `<${tag} class="${rowCls}" ${href}>
+      ${banner}
       <div class="ev-date">
         <span class="ev-day">${fmtDay(e.date)}</span>
         <span class="ev-ms">${fmtMs(e.date)}</span>
@@ -322,7 +480,7 @@ const grouped = groupByMonth(events);
     info.innerHTML = `Showing <b>${evs.length}</b> event${evs.length !== 1 ? 's' : ''} across <b>${months.length}</b> month${months.length !== 1 ? 's' : ''}`;
     out.innerHTML = months.map((m, i) => `
       <div class="month-block">
-        <div class="month-hdr">${m}<span>${byMonth[m].length} event${byMonth[m].length !== 1 ? 's' : ''}</span></div>
+        <div class="month-hdr">${m}<span>${byMonth[m].length} event${byMonth[m].length !== 1 ? 's' : ''}</span><a href="${monthToPath(m)}" class="month-map-btn">${PIN_SVG}Map</a></div>
         ${byMonth[m].map(eventRow).join('')}
       </div>`).join('');
     document.dispatchEvent(new CustomEvent('events-rendered'));
